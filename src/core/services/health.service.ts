@@ -3,13 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@infrastructure/database/prisma/prisma.service';
 import { LoggerService } from '@infrastructure/logger/logger.service';
 import {
-  IHealthResponse,
-  IDatabaseHealthResponse,
-  IReadinessResponse,
-  ILivenessResponse,
-  IHealthCheckDetail,
-  IComprehensiveHealthResponse,
-} from '@application/dtos/responses/health.response';
+  HealthCheckResponse,
+  DatabaseHealthResponse,
+  ReadinessResponse,
+  LivenessResponse,
+  HealthCheckDetailResponse,
+  ComprehensiveHealthResponse,
+} from '@application/dtos';
 import {
   HealthCheckException,
   DatabaseConnectionException,
@@ -31,7 +31,7 @@ export class HealthService {
   /**
    * Get basic application health status
    */
-  async getHealth(): Promise<IHealthResponse> {
+  async getHealth(): Promise<HealthCheckResponse> {
     this.logger.debug('Performing basic health check');
 
     return {
@@ -46,7 +46,7 @@ export class HealthService {
   /**
    * Get database health status with connection validation
    */
-  async getDatabaseHealth(): Promise<IDatabaseHealthResponse> {
+  async getDatabaseHealth(): Promise<DatabaseHealthResponse> {
     this.logger.debug('Performing database health check');
 
     try {
@@ -74,7 +74,7 @@ export class HealthService {
   /**
    * Kubernetes readiness probe - comprehensive service readiness
    */
-  async getReadiness(): Promise<IReadinessResponse> {
+  async getReadiness(): Promise<ReadinessResponse> {
     this.logger.debug('Performing readiness check');
 
     try {
@@ -119,7 +119,7 @@ export class HealthService {
   /**
    * Kubernetes liveness probe - basic service availability
    */
-  async getLiveness(): Promise<ILivenessResponse> {
+  async getLiveness(): Promise<LivenessResponse> {
     this.logger.debug('Performing liveness check');
 
     // Liveness should be lightweight - just verify the process is responsive
@@ -133,10 +133,10 @@ export class HealthService {
   /**
    * Comprehensive health check with detailed information
    */
-  async getComprehensiveHealth(): Promise<IComprehensiveHealthResponse> {
+  async getComprehensiveHealth(): Promise<ComprehensiveHealthResponse> {
     this.logger.debug('Performing comprehensive health check');
 
-    const checks: IHealthCheckDetail[] = [];
+    const checks: HealthCheckDetailResponse[] = [];
     let overallStatus: 'ok' | 'degraded' | 'down' = 'ok';
 
     // Database check
@@ -230,7 +230,7 @@ export class HealthService {
   private async performHealthCheck(
     name: string,
     checkFn: () => Promise<void>,
-  ): Promise<IHealthCheckDetail> {
+  ): Promise<HealthCheckDetailResponse> {
     const startTime = Date.now();
 
     try {

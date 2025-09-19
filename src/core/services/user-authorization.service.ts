@@ -7,7 +7,6 @@ import {
   AdminUserSpecification,
   UserHasPermissionSpecification,
   CanAssignRoleSpecification,
-  EligibleForAdminRoleSpecification,
   CompleteUserAccountSpecification,
 } from '@core/specifications/user.specifications';
 import {
@@ -66,7 +65,7 @@ export class UserAuthorizationService {
     // Additional rule: only super admins can assign admin roles
     const adminRoleSpec = new AdminRoleSpecification();
     if (adminRoleSpec.isSatisfiedBy(role)) {
-      const assignerPermissionSpec = new UserHasPermissionSpecification('user:assign-admin-role');
+      const assignerPermissionSpec = new UserHasPermissionSpecification('role:update');
 
       return assignerPermissionSpec.isSatisfiedBy(assignerUser);
     }
@@ -109,62 +108,5 @@ export class UserAuthorizationService {
     const hasPermissionSpec = new UserHasPermissionSpecification(permissionName);
 
     return hasPermissionSpec.isSatisfiedBy(user);
-  }
-
-  /**
-   * Check if a user can become an admin
-   */
-  canBecomeAdmin(user: User): boolean {
-    const activeUserSpec = new ActiveUserSpecification();
-    const eligibleForAdminSpec = new EligibleForAdminRoleSpecification();
-    const completeAccountSpec = new CompleteUserAccountSpecification();
-
-    // Combine specifications for admin eligibility
-    const adminEligibilitySpec = activeUserSpec.and(eligibleForAdminSpec).and(completeAccountSpec);
-
-    return adminEligibilitySpec.isSatisfiedBy(user);
-  }
-
-  /**
-   * Get security level for a user (for audit logging)
-   */
-  getUserSecurityLevel(user: User): 'low' | 'medium' | 'high' | 'critical' {
-    const activeUserSpec = new ActiveUserSpecification();
-    const twoFactorSpec = new TwoFactorEnabledSpecification();
-    const adminUserSpec = new AdminUserSpecification();
-
-    if (!activeUserSpec.isSatisfiedBy(user)) {
-      return 'low';
-    }
-
-    if (adminUserSpec.isSatisfiedBy(user)) {
-      if (twoFactorSpec.isSatisfiedBy(user)) {
-        return 'critical';
-      }
-
-      return 'high';
-    }
-
-    if (twoFactorSpec.isSatisfiedBy(user)) {
-      return 'medium';
-    }
-
-    return 'low';
-  }
-
-  /**
-   * Check if user access should be logged (for compliance)
-   */
-  shouldLogAccess(user: User, resource: string): boolean {
-    const adminUserSpec = new AdminUserSpecification();
-    const sensitiveResources = ['user', 'role', 'permission', 'audit', 'system'];
-
-    // Always log admin user access
-    if (adminUserSpec.isSatisfiedBy(user)) {
-      return true;
-    }
-
-    // Log access to sensitive resources
-    return sensitiveResources.includes(resource.toLowerCase());
   }
 }

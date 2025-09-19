@@ -3,18 +3,17 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 // DTOs
-import { RegisterDto } from '@application/dtos/auth/register.dto';
-import { LoginDto } from '@application/dtos/auth/login.dto';
-import { VerifyOtpDto } from '@application/dtos/auth/verify-otp.dto';
-import { RefreshTokenDto } from '@application/dtos/auth/refresh-token.dto';
 import {
-  SendVerificationEmailDto,
-  VerifyEmailDto,
-} from '@application/dtos/auth/email-verification.dto';
-import {
-  RequestPasswordResetDto,
-  ResetPasswordDto,
-} from '@application/dtos/auth/password-reset.dto';
+  RegisterRequest,
+  LoginRequest,
+  VerifyOtpRequest,
+  RefreshTokenRequest,
+  SendVerificationEmailRequest,
+  VerifyEmailRequest,
+  RequestPasswordResetRequest,
+  ResetPasswordRequest,
+  IJwtPayload,
+} from '@application/dtos';
 
 // Commands
 import { RegisterUserCommand } from '@application/commands/auth/register-user.command';
@@ -32,7 +31,6 @@ import { ResetPasswordCommand } from '@application/commands/auth/reset-password.
 import { Public } from '@shared/decorators/public.decorator';
 import { CurrentUser } from '@shared/decorators/current-user.decorator';
 import { SkipThrottle, Throttle } from '@shared/decorators/throttle.decorator';
-import { IJwtPayload } from '@application/dtos/responses/user.response';
 
 @ApiTags('auth')
 @Throttle(60, 5) // 5 requests per minute
@@ -47,7 +45,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully registered' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({ status: HttpStatus.CONFLICT, description: 'User with this email already exists' })
-  async register(@Body() registerDto: RegisterDto) {
+  async register(@Body() registerDto: RegisterRequest) {
     return this.commandBus.execute(new RegisterUserCommand(registerDto));
   }
 
@@ -61,7 +59,7 @@ export class AuthController {
       'User successfully authenticated. Returns access token, refresh token, and user data. May return OTP requirement if 2FA is enabled.',
   })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginRequest) {
     return this.commandBus.execute(new LoginCommand(loginDto));
   }
 
@@ -83,7 +81,7 @@ export class AuthController {
       },
     },
   })
-  async verifyOtp(@Body('userId') userId: string, @Body() verifyOtpDto: VerifyOtpDto) {
+  async verifyOtp(@Body('userId') userId: string, @Body() verifyOtpDto: VerifyOtpRequest) {
     return this.commandBus.execute(new VerifyOtpCommand(userId, verifyOtpDto));
   }
 
@@ -96,7 +94,7 @@ export class AuthController {
     description: 'Token refreshed successfully. Returns new access token and refresh token.',
   })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid refresh token' })
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenRequest) {
     return this.commandBus.execute(new RefreshTokenCommand(refreshTokenDto));
   }
 
@@ -131,7 +129,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Send email verification code' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Verification email sent successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid email format' })
-  async sendVerificationEmail(@Body() sendVerificationEmailDto: SendVerificationEmailDto) {
+  async sendVerificationEmail(@Body() sendVerificationEmailDto: SendVerificationEmailRequest) {
     return this.commandBus.execute(new SendVerificationEmailCommand(sendVerificationEmailDto));
   }
 
@@ -152,7 +150,7 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid or expired verification code',
   })
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailRequest) {
     return this.commandBus.execute(new VerifyEmailCommand(verifyEmailDto));
   }
 
@@ -178,7 +176,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Request a password reset email' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Password reset email sent successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid email format' })
-  async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
+  async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetRequest) {
     return this.commandBus.execute(new RequestPasswordResetCommand(requestPasswordResetDto));
   }
 
@@ -189,7 +187,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Password reset successfully' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or expired token' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid password format' })
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordRequest) {
     return this.commandBus.execute(new ResetPasswordCommand(resetPasswordDto));
   }
 }

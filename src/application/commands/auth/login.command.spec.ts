@@ -11,7 +11,7 @@ import { Email } from '@core/value-objects/email.vo';
 import { FirstName, LastName } from '@core/value-objects/name.vo';
 import { Role } from '@core/entities/role.entity';
 import { Permission } from '@core/entities/permission.entity';
-import { ResourceAction, ActionType } from '@core/value-objects/resource-action.vo';
+import { ResourceAction, ActionType, ResourceType } from '@core/value-objects/resource-action.vo';
 import { I18nService } from 'nestjs-i18n';
 import { LoggerService } from '@infrastructure/logger/logger.service';
 import { ROLE_REPOSITORY } from '@shared/constants/tokens';
@@ -305,11 +305,11 @@ describe('LoginCommandHandler', () => {
     // Create roles with permissions for repository responses
     const userRoleWithPermissions = createRoleWithPermissions();
 
-    const adminResourceAction = new ResourceAction('user', ActionType.WRITE);
+    const adminResourceAction = new ResourceAction(ResourceType.USER, ActionType.UPDATE);
     const adminPermission = Permission.fromData({
       id: '550e8400-e29b-41d4-a716-446655440004',
       resourceAction: adminResourceAction,
-      description: 'Can write user details',
+      description: 'Can update user details',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -351,7 +351,7 @@ describe('LoginCommandHandler', () => {
     // Check that permissions from both roles are included
     expect(tokenProvider.generateTokens).toHaveBeenCalledWith(
       user,
-      expect.arrayContaining(['user:read', 'user:write']),
+      expect.arrayContaining(['user:read', 'user:update']),
       true,
     );
 

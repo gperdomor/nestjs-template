@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { ResourceType, ActionType } from '../src/core/value-objects/resource-action.vo';
 
 // Roles
 const roles = [
@@ -20,62 +21,80 @@ const permissions = [
   {
     name: 'user:read',
     description: 'Can read user information',
-    resource: 'user',
-    action: 'read',
+    resource: ResourceType.USER,
+    action: ActionType.READ,
   },
   {
-    name: 'user:write',
-    description: 'Can create and update user information',
-    resource: 'user',
-    action: 'write',
+    name: 'user:create',
+    description: 'Can create users',
+    resource: ResourceType.USER,
+    action: ActionType.CREATE,
+  },
+  {
+    name: 'user:update',
+    description: 'Can update user information',
+    resource: ResourceType.USER,
+    action: ActionType.UPDATE,
   },
   {
     name: 'user:delete',
     description: 'Can delete users',
-    resource: 'user',
-    action: 'delete',
+    resource: ResourceType.USER,
+    action: ActionType.DELETE,
   },
   {
     name: 'role:read',
     description: 'Can read role information',
-    resource: 'role',
-    action: 'read',
+    resource: ResourceType.ROLE,
+    action: ActionType.READ,
   },
   {
-    name: 'role:write',
-    description: 'Can create and update roles',
-    resource: 'role',
-    action: 'write',
+    name: 'role:create',
+    description: 'Can create roles',
+    resource: ResourceType.ROLE,
+    action: ActionType.CREATE,
+  },
+  {
+    name: 'role:update',
+    description: 'Can update roles',
+    resource: ResourceType.ROLE,
+    action: ActionType.UPDATE,
   },
   {
     name: 'role:delete',
     description: 'Can delete roles',
-    resource: 'role',
-    action: 'delete',
+    resource: ResourceType.ROLE,
+    action: ActionType.DELETE,
   },
   {
-    name: 'storage:write',
+    name: 'storage:create',
     description: 'Can upload files',
-    resource: 'file',
-    action: 'write',
+    resource: ResourceType.STORAGE,
+    action: ActionType.CREATE,
   },
   {
     name: 'storage:read',
     description: 'Can read file information',
-    resource: 'file',
-    action: 'read',
+    resource: ResourceType.STORAGE,
+    action: ActionType.READ,
+  },
+  {
+    name: 'storage:update',
+    description: 'Can update file information',
+    resource: ResourceType.STORAGE,
+    action: ActionType.UPDATE,
   },
   {
     name: 'storage:delete',
     description: 'Can delete files',
-    resource: 'file',
-    action: 'delete',
+    resource: ResourceType.STORAGE,
+    action: ActionType.DELETE,
   },
   {
-    name: 'storage:manage',
-    description: 'Can update file information',
-    resource: 'file',
-    action: 'manage',
+    name: 'audit:read',
+    description: 'Can read audit logs',
+    resource: ResourceType.AUDIT,
+    action: ActionType.READ,
   },
 ];
 
@@ -83,17 +102,20 @@ const permissions = [
 const rolePermissionsMap = {
   admin: [
     'user:read',
-    'user:write',
+    'user:create',
+    'user:update',
     'user:delete',
     'role:read',
-    'role:write',
+    'role:create',
+    'role:update',
     'role:delete',
-    'storage:write',
+    'storage:create',
     'storage:read',
+    'storage:update',
     'storage:delete',
-    'storage:manage',
+    'audit:read',
   ],
-  user: ['user:read', 'storage:manage', 'storage:write', 'storage:read'],
+  user: ['user:read', 'storage:create', 'storage:read', 'storage:update'],
 };
 
 // Default admin user

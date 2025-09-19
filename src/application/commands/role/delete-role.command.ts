@@ -2,7 +2,10 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { RoleService } from '@core/services/role.service';
 
 export class DeleteRoleCommand {
-  constructor(public readonly id: string) {}
+  constructor(
+    public readonly id: string,
+    public readonly deleterId?: string, // ID of the user performing the deletion
+  ) {}
 }
 
 @CommandHandler(DeleteRoleCommand)
@@ -10,8 +13,8 @@ export class DeleteRoleCommandHandler implements ICommandHandler<DeleteRoleComma
   constructor(private readonly roleService: RoleService) {}
 
   async execute(command: DeleteRoleCommand): Promise<boolean> {
-    const { id } = command;
+    const { id, deleterId } = command;
 
-    return this.roleService.deleteRole(id);
+    return this.roleService.deleteRole(id, deleterId);
   }
 }

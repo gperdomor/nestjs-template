@@ -1,7 +1,6 @@
 import { Permission } from './permission.entity';
 import { RoleId } from '@core/value-objects/role-id.vo';
 import { PermissionId } from '@core/value-objects/permission-id.vo';
-import { AggregateRoot } from '@core/events/domain-event.base';
 import {
   CannotDeleteDefaultRoleException,
   PermissionAlreadyAssignedException,
@@ -10,7 +9,7 @@ import {
 import { CanAssignPermissionToRoleSpecification } from '@core/specifications/role.specifications';
 import { PermissionsCollection } from '@core/value-objects/collections/permissions.collection';
 
-export class Role extends AggregateRoot {
+export class Role {
   private readonly _id: RoleId;
   private _name: string;
   private _description: string;
@@ -26,7 +25,6 @@ export class Role extends AggregateRoot {
     isDefault: boolean = false,
     createdAt?: Date,
   ) {
-    super();
     this.validateName(name);
     this.validateDescription(description);
 

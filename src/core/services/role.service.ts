@@ -2,13 +2,15 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Role } from '../entities/role.entity';
 import { IRoleRepository } from '../repositories/role.repository.interface';
 import { IPermissionRepository } from '../repositories/permission.repository.interface';
+import { IUserRepository } from '../repositories/user.repository.interface';
 import {
   EntityNotFoundException,
   EntityAlreadyExistsException,
   ForbiddenActionException,
 } from '@core/exceptions/domain-exceptions';
 import { PermissionId } from '@core/value-objects/permission-id.vo';
-import { ROLE_REPOSITORY, PERMISSION_REPOSITORY } from '@shared/constants/tokens';
+import { ROLE_REPOSITORY, PERMISSION_REPOSITORY, USER_REPOSITORY } from '@shared/constants/tokens';
+import { UserAuthorizationService } from './user-authorization.service';
 
 @Injectable()
 export class RoleService {
@@ -17,6 +19,9 @@ export class RoleService {
     private readonly roleRepository: IRoleRepository,
     @Inject(PERMISSION_REPOSITORY)
     private readonly permissionRepository: IPermissionRepository,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+    private readonly userAuthorizationService: UserAuthorizationService,
   ) {}
 
   async createRole(name: string, description: string, isDefault: boolean = false): Promise<Role> {
@@ -108,10 +113,23 @@ export class RoleService {
     return this.roleRepository.update(role);
   }
 
-  async deleteRole(id: string): Promise<boolean> {
+  async deleteRole(id: string, deleterId?: string): Promise<boolean> {
     const role = await this.roleRepository.findById(id);
     if (!role) {
       throw new EntityNotFoundException('Role', id);
+    }
+
+    // If deleterId is provided, check authorization
+    if (deleterId) {
+      const deleterUser = await this.userRepository.findById(deleterId);
+      if (!deleterUser) {
+        throw new EntityNotFoundException('User', deleterId);
+      }
+
+      // Check if the deleter can delete this role
+      if (!this.userAuthorizationService.canDeleteRole(deleterUser, role)) {
+        throw new ForbiddenActionException('You are not authorized to delete this role');
+      }
     }
 
     if (role.isDefault) {

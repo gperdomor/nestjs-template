@@ -22,7 +22,7 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    // Check for resource and action metadata
+    // Check for resource and action metadata (method level)
     const resource = this.reflector.get<string>('resource', context.getHandler());
     const action = this.reflector.get<string>('action', context.getHandler());
 
@@ -30,14 +30,20 @@ export class PermissionsGuard implements CanActivate {
       return this.userAuthorizationService.canAccessResource(user, resource, action);
     }
 
-    // Check for admin access requirement
-    const requiresAdmin = this.reflector.get<boolean>('admin', context.getHandler());
+    // Check for admin access requirement (check both class and method level)
+    const requiresAdmin = this.reflector.getAllAndOverride<boolean>('admin', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (requiresAdmin) {
       return this.userAuthorizationService.canAccessAdminFeatures(user);
     }
 
-    // Check for sensitive operation requirement
-    const requiresSensitive = this.reflector.get<boolean>('sensitive', context.getHandler());
+    // Check for sensitive operation requirement (check both class and method level)
+    const requiresSensitive = this.reflector.getAllAndOverride<boolean>('sensitive', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (requiresSensitive) {
       return this.userAuthorizationService.canPerformSensitiveOperations(user);
     }

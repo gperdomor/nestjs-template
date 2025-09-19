@@ -6,6 +6,7 @@ import { PermissionsGuard } from '@presentation/guards/permissions.guard';
 import { RequiresAdmin } from '@shared/decorators/admin.decorator';
 import { RequiresSensitive } from '@shared/decorators/sensitive.decorator';
 import { RequiresResourceAction } from '@shared/decorators/resource-action.decorator';
+import { ResourceType, ActionType } from '@core/value-objects/resource-action.vo';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -50,7 +51,7 @@ export class AdminController {
 
   @Get('audit-logs')
   @HttpCode(HttpStatus.OK)
-  @RequiresResourceAction('audit', 'read')
+  @RequiresResourceAction(ResourceType.AUDIT, ActionType.READ)
   @ApiOperation({ summary: 'Get audit logs (Requires specific permission)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns audit logs' })
   @ApiResponse({

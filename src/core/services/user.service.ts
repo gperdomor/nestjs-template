@@ -8,12 +8,13 @@ import {
   EntityNotFoundException,
   EntityAlreadyExistsException,
   AuthenticationException,
+  ForbiddenActionException,
 } from '@core/exceptions/domain-exceptions';
 import { Email } from '@core/value-objects/email.vo';
 import { Password } from '@core/value-objects/password.vo';
 import { FirstName, LastName } from '@core/value-objects/name.vo';
 import { RoleId } from '@core/value-objects/role-id.vo';
-import { DomainValidationService } from './domain-validation.service';
+import { UserAuthorizationService } from './user-authorization.service';
 
 @Injectable()
 export class UserService {
@@ -22,7 +23,7 @@ export class UserService {
     private readonly userRepository: IUserRepository,
     @Inject(ROLE_REPOSITORY)
     private readonly roleRepository: IRoleRepository,
-    private readonly domainValidationService: DomainValidationService,
+    private readonly userAuthorizationService: UserAuthorizationService,
   ) {}
 
   async createUser(
@@ -154,12 +155,7 @@ export class UserService {
       }
     }
 
-    // Validate password complexity using domain validation service
-    const passwordValidation =
-      this.domainValidationService.validatePasswordComplexity(newPasswordStr);
-    passwordValidation.throwIfInvalid();
-
-    // Validate new password using value object
+    // Validate new password using value object (includes complexity validation)
     const newPassword = new Password(newPasswordStr);
 
     user.changePassword(await this.hashPassword(newPassword.getValue()));
@@ -168,9 +164,9 @@ export class UserService {
     return this.userRepository.update(user);
   }
 
-  async assignRoleToUser(userId: string, roleId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
+  async assignRoleToUser(userId: string, roleId: string, assignerId?: string): Promise<User> {
+    const targetUser = await this.userRepository.findById(userId);
+    if (!targetUser) {
       throw new EntityNotFoundException('User', userId);
     }
 
@@ -179,16 +175,23 @@ export class UserService {
       throw new EntityNotFoundException('Role', roleId);
     }
 
-    // Validate role assignment using domain validation service
-    const roleAssignmentValidation = this.domainValidationService.validateRoleAssignment(
-      user,
-      role,
-    );
-    roleAssignmentValidation.throwIfInvalid();
+    // If assignerId is provided, check authorization
+    if (assignerId) {
+      const assignerUser = await this.userRepository.findById(assignerId);
+      if (!assignerUser) {
+        throw new EntityNotFoundException('User', assignerId);
+      }
 
-    user.addRole(role);
+      // Check if the assigner can assign this role
+      if (!this.userAuthorizationService.canAssignRole(assignerUser, targetUser, role)) {
+        throw new ForbiddenActionException('You are not authorized to assign this role');
+      }
+    }
 
-    return this.userRepository.update(user);
+    // Role assignment validation is handled by the User entity's addRole method
+    targetUser.addRole(role);
+
+    return this.userRepository.update(targetUser);
   }
 
   async removeRoleFromUser(userId: string, roleId: string): Promise<User> {

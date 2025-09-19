@@ -3,8 +3,9 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from '@core/repositories/user.repository.interface';
-import { IJwtPayload } from '@application/dtos/responses/user.response';
+import { IJwtPayload } from '@application/dtos';
 import { USER_REPOSITORY } from '@shared/constants/tokens';
+import { User } from '@core/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: IJwtPayload): Promise<IJwtPayload> {
+  async validate(payload: IJwtPayload): Promise<User> {
     // Check if the user still exists
     const user = await this.userRepository.findById(payload.sub);
 
@@ -29,12 +30,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User no longer active or not found');
     }
 
-    // Return the payload with roles and permissions which will be injected into the request object
-    return {
-      sub: payload.sub,
-      email: payload.email,
-      roles: payload.roles || [],
-      permissions: payload.permissions || [],
-    };
+    // Return the complete User entity which will be injected into the request object
+    // This ensures that guards like PermissionsGuard have access to all user methods
+    // including hasPermission() and the isActive property
+    return user;
   }
 }

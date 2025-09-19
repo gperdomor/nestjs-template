@@ -15,17 +15,19 @@ import { QueryBus, CommandBus } from '@nestjs/cqrs';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 
 // Guards & Decorators
-import { RolesGuard } from '@presentation/guards/roles.guard';
-import { Roles } from '@shared/decorators/roles.decorator';
-import { RolesEnum } from '@shared/constants/roles.constants';
+import { PermissionsGuard } from '@presentation/guards/permissions.guard';
+import { RequiresResourceAction } from '@shared/decorators/resource-action.decorator';
 import { CurrentUser } from '@shared/decorators/current-user.decorator';
+import { ResourceType, ActionType } from '@core/value-objects/resource-action.vo';
 
 // DTOs
-import { CreateUserDto } from '@application/dtos/user/create-user.dto';
-import { UpdateUserDto } from '@application/dtos/user/update-user.dto';
-import { ChangePasswordDto } from '@application/dtos/user/change-password.dto';
-import { ActivateUserDto } from '@application/dtos/user/activate-user.dto';
-import { AssignRoleDto } from '@application/dtos/user/assign-role.dto';
+import {
+  UpdateUserRequest,
+  ChangePasswordRequest,
+  ActivateUserRequest,
+  AssignRoleRequest,
+  IJwtPayload,
+} from '@application/dtos';
 
 // Queries
 import { GetUserQuery } from '@application/queries/user/get-user.query';
@@ -38,11 +40,10 @@ import { ActivateUserCommand } from '@application/commands/user/activate-user.co
 import { AssignRoleCommand } from '@application/commands/user/assign-role.command';
 import { RemoveRoleCommand } from '@application/commands/user/remove-role.command';
 import { VerifyPasswordCommand } from '@application/commands/user/verify-password.command';
-import { IJwtPayload } from '@application/dtos/responses/user.response';
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @ApiBearerAuth('JWT-auth')
 export class UserController {
   constructor(
@@ -51,49 +52,37 @@ export class UserController {
   ) {}
 
   @Get()
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.READ)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiOperation({ summary: 'Get all users (Requires user:read permission)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns a list of all users' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async getAllUsers() {
     return this.queryBus.execute(new GetUsersQuery());
   }
 
   @Get(':id')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.READ)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get user by ID (Admin only)' })
+  @ApiOperation({ summary: 'Get user by ID (Requires user:read permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns user information' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async getUserById(@Param('id') id: string) {
     return this.queryBus.execute(new GetUserQuery(id));
   }
 
-  @Post()
-  @Roles(RolesEnum.ADMIN)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create new user (Admin only)' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'User created successfully' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
-  async createUser(@Body() _createUserDto: CreateUserDto) {
-    // This would normally use a command
-    return { message: 'User created successfully' };
-  }
-
   @Put(':id')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update user by ID (Admin only)' })
+  @ApiOperation({ summary: 'Update user by ID (Requires user:update permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User updated successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
-  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserRequest) {
     return this.commandBus.execute(
       new UpdateUserCommand(
         id,
@@ -111,7 +100,7 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   async updateCurrentUserProfile(
     @CurrentUser() user: IJwtPayload,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserRequest,
   ) {
     return this.commandBus.execute(
       new UpdateUserCommand(
@@ -124,28 +113,28 @@ export class UserController {
   }
 
   @Delete(':id')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.DELETE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete user by ID (Admin only)' })
+  @ApiOperation({ summary: 'Delete user by ID (Requires user:delete permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User deleted successfully' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async deleteUser(@Param('id') _id: string) {
     // This would normally use a command
     return { message: 'User deleted successfully' };
   }
 
   @Post(':id/change-password')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Change user password (Admin only)' })
+  @ApiOperation({ summary: 'Change user password (Requires user:update permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Password changed successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
-  async changePassword(@Param('id') id: string, @Body() changePasswordDto: ChangePasswordDto) {
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  async changePassword(@Param('id') id: string, @Body() changePasswordDto: ChangePasswordRequest) {
     await this.commandBus.execute(
       new ChangePasswordCommand(
         id,
@@ -165,7 +154,7 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Current password is incorrect' })
   async changeCurrentUserPassword(
     @CurrentUser() user: IJwtPayload,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body() changePasswordDto: ChangePasswordRequest,
   ) {
     await this.commandBus.execute(
       new ChangePasswordCommand(
@@ -193,35 +182,41 @@ export class UserController {
   }
 
   @Patch(':id/activate')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Activate or deactivate user (Admin only)' })
+  @ApiOperation({ summary: 'Activate or deactivate user (Requires user:update permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User activation status updated' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
-  async activateUser(@Param('id') id: string, @Body() activateUserDto: ActivateUserDto) {
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  async activateUser(@Param('id') id: string, @Body() activateUserDto: ActivateUserRequest) {
     return this.commandBus.execute(new ActivateUserCommand(id, activateUserDto.active));
   }
 
   @Post(':id/roles')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Assign role to user (Admin only)' })
+  @ApiOperation({ summary: 'Assign role to user (Requires user:update permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Role assigned successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User or role not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
-  async assignRoleToUser(@Param('id') id: string, @Body() assignRoleDto: AssignRoleDto) {
-    return this.commandBus.execute(new AssignRoleCommand(id, assignRoleDto.roleId));
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  async assignRoleToUser(
+    @Param('id') id: string,
+    @Body() assignRoleDto: AssignRoleRequest,
+    @CurrentUser() currentUser: IJwtPayload,
+  ) {
+    return this.commandBus.execute(
+      new AssignRoleCommand(id, assignRoleDto.roleId, currentUser.sub),
+    );
   }
 
   @Delete(':id/roles/:roleId')
-  @Roles(RolesEnum.ADMIN)
+  @RequiresResourceAction(ResourceType.USER, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Remove role from user (Admin only)' })
+  @ApiOperation({ summary: 'Remove role from user (Requires user:update permission)' })
   @ApiParam({ name: 'id', description: 'User ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiParam({
     name: 'roleId',
@@ -230,7 +225,7 @@ export class UserController {
   })
   @ApiResponse({ status: HttpStatus.OK, description: 'Role removed successfully' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async removeRoleFromUser(@Param('id') id: string, @Param('roleId') roleId: string) {
     return this.commandBus.execute(new RemoveRoleCommand(id, roleId));
   }

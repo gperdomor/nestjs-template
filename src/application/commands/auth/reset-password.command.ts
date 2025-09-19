@@ -1,5 +1,5 @@
 import { ICommand, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { ResetPasswordDto } from '@application/dtos/auth/password-reset.dto';
+import { ResetPasswordRequest } from '@application/dtos';
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from '@core/services/auth.service';
 import { UserService } from '@core/services/user.service';
@@ -10,7 +10,7 @@ import {
 } from '@core/exceptions/domain-exceptions';
 
 export class ResetPasswordCommand implements ICommand {
-  constructor(public readonly dto: ResetPasswordDto) {}
+  constructor(public readonly dto: ResetPasswordRequest) {}
 }
 
 @Injectable()

@@ -1,30 +1,47 @@
 import { InvalidValueObjectException } from '@core/exceptions/domain-exceptions';
 
+export enum ResourceType {
+  USER = 'user',
+  ROLE = 'role',
+  STORAGE = 'storage',
+  AUDIT = 'audit',
+}
+
 export enum ActionType {
   READ = 'read',
-  WRITE = 'write',
+  CREATE = 'create',
+  UPDATE = 'update',
   DELETE = 'delete',
-  MANAGE = 'manage',
 }
 
 export class ResourceAction {
   private readonly resource: string;
   private readonly action: ActionType;
 
-  constructor(resource: string, action: ActionType | string) {
-    if (!this.isValidResource(resource)) {
+  constructor(resource: ResourceType | string, action: ActionType | string) {
+    const resourceValue =
+      typeof resource === 'string' ? this.parseResourceType(resource) : resource;
+
+    if (!this.isValidResource(resourceValue)) {
       throw new InvalidValueObjectException('Invalid resource name');
     }
 
     const actionValue = typeof action === 'string' ? this.parseActionType(action) : action;
 
-    this.resource = resource.toLowerCase();
+    this.resource = resourceValue.toLowerCase();
     this.action = actionValue;
   }
 
   private isValidResource(resource: string): boolean {
     // Resource name should be lowercase alphanumeric and cannot be empty
     return /^[a-z0-9-]+$/.test(resource) && resource.length > 0;
+  }
+
+  private parseResourceType(resource: string): ResourceType {
+    if (Object.values(ResourceType).includes(resource as ResourceType)) {
+      return resource as ResourceType;
+    }
+    throw new InvalidValueObjectException('Invalid resource type');
   }
 
   private parseActionType(action: string): ActionType {
@@ -40,15 +57,5 @@ export class ResourceAction {
 
   getAction(): ActionType {
     return this.action;
-  }
-
-  getPermissionName(): string {
-    return `${this.resource}:${this.action}`;
-  }
-
-  equals(resourceAction: ResourceAction): boolean {
-    return (
-      this.resource === resourceAction.getResource() && this.action === resourceAction.getAction()
-    );
   }
 }

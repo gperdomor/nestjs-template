@@ -26,5 +26,12 @@
       "@shared/*": ["src/shared/*"]
     }
   },
-  "exclude": ["**/*.spec.ts", "**/*.test.ts", "test/**/*"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test/**/*",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.d.ts" // Exclude .d.ts files from compilation
+  ]
 }
