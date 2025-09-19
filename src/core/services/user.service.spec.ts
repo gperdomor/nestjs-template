@@ -7,7 +7,7 @@ import {
   createMockUserRepository,
   createMockRoleRepository,
 } from '../../test/mocks/repositories.factory';
-import { DomainValidationService, ValidationResult } from './domain-validation.service';
+import { UserAuthorizationService } from './user-authorization.service';
 
 // Tokens
 import { USER_REPOSITORY, ROLE_REPOSITORY } from '@shared/constants/tokens';
@@ -30,36 +30,29 @@ jest.mock('bcrypt', () => ({
   compare: jest.fn().mockResolvedValue(true),
 }));
 
-// Mock DomainValidationService
-const createMockDomainValidationService = () => ({
-  validatePasswordComplexity: jest.fn().mockReturnValue({
-    isValid: true,
-    throwIfInvalid: jest.fn(),
-  }),
-  validateRoleAssignment: jest.fn().mockReturnValue({
-    isValid: true,
-    throwIfInvalid: jest.fn(),
-  }),
+// Mock UserAuthorizationService
+const createMockUserAuthorizationService = () => ({
+  canAssignRole: jest.fn().mockReturnValue(true),
 });
 
 describe('UserService', () => {
   let service: UserService;
   let userRepository;
   let roleRepository;
-  let domainValidationService;
+  let userAuthorizationService;
 
   beforeEach(async () => {
     // Create fresh mocks for each test
     userRepository = createMockUserRepository();
     roleRepository = createMockRoleRepository();
-    domainValidationService = createMockDomainValidationService();
+    userAuthorizationService = createMockUserAuthorizationService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: USER_REPOSITORY, useValue: userRepository },
         { provide: ROLE_REPOSITORY, useValue: roleRepository },
-        { provide: DomainValidationService, useValue: domainValidationService },
+        { provide: UserAuthorizationService, useValue: userAuthorizationService },
       ],
     }).compile();
 

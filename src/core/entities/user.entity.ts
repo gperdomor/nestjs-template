@@ -3,19 +3,6 @@ import { Email } from '@core/value-objects/email.vo';
 import { FirstName, LastName } from '@core/value-objects/name.vo';
 import { UserId } from '@core/value-objects/user-id.vo';
 import { RoleId } from '@core/value-objects/role-id.vo';
-import { AggregateRoot } from '@core/events/domain-event.base';
-import {
-  UserRegisteredEvent,
-  UserActivatedEvent,
-  UserDeactivatedEvent,
-  UserRoleAssignedEvent,
-  UserRoleRemovedEvent,
-  UserPasswordChangedEvent,
-  UserEmailChangedEvent,
-  UserTwoFactorEnabledEvent,
-  UserTwoFactorDisabledEvent,
-  UserLastLoginUpdatedEvent,
-} from '@core/events/user.events';
 import {
   UserNotEligibleForRoleException,
   UserAlreadyHasRoleException,
@@ -26,7 +13,7 @@ import {
 import { CanAssignRoleSpecification } from '@core/specifications/user.specifications';
 import { RolesCollection } from '@core/value-objects/collections/roles.collection';
 
-export class User extends AggregateRoot {
+export class User {
   private readonly _id: UserId;
   private _email: Email;
   private _passwordHash: string;
@@ -49,7 +36,6 @@ export class User extends AggregateRoot {
     isActive: boolean = true,
     createdAt?: Date,
   ) {
-    super();
     this._id = id;
     this._email = email;
     this._passwordHash = passwordHash;
@@ -71,10 +57,6 @@ export class User extends AggregateRoot {
   ): User {
     const userId = UserId.create();
     const user = new User(userId, email, passwordHash, firstName, lastName);
-
-    user.addDomainEvent(
-      new UserRegisteredEvent(userId, email.getValue(), firstName.getValue(), lastName.getValue()),
-    );
 
     return user;
   }
@@ -174,7 +156,6 @@ export class User extends AggregateRoot {
 
     this._isActive = true;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserActivatedEvent(this._id));
   }
 
   deactivate(): void {
@@ -184,7 +165,6 @@ export class User extends AggregateRoot {
 
     this._isActive = false;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserDeactivatedEvent(this._id));
   }
 
   enableTwoFactor(secret: string): void {
@@ -199,7 +179,6 @@ export class User extends AggregateRoot {
     this._otpEnabled = true;
     this._otpSecret = secret;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserTwoFactorEnabledEvent(this._id));
   }
 
   disableTwoFactor(): void {
@@ -210,7 +189,6 @@ export class User extends AggregateRoot {
     this._otpEnabled = false;
     this._otpSecret = undefined;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserTwoFactorDisabledEvent(this._id));
   }
 
   // Aliases for backward compatibility
@@ -238,7 +216,6 @@ export class User extends AggregateRoot {
 
     this._roles.push(role);
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserRoleAssignedEvent(this._id, role.id, role.name));
   }
 
   removeRole(roleId: RoleId): void {
@@ -257,7 +234,6 @@ export class User extends AggregateRoot {
 
     this._roles = this._roles.filter(r => !r.id.equals(roleId));
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserRoleRemovedEvent(this._id, roleId, roleToRemove.name));
   }
 
   changeEmail(newEmail: Email): void {
@@ -269,10 +245,9 @@ export class User extends AggregateRoot {
       return; // Same email, no change needed
     }
 
-    const oldEmail = this._email.getValue();
+    const _oldEmail = this._email.getValue();
     this._email = newEmail;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserEmailChangedEvent(this._id, oldEmail, newEmail.getValue()));
   }
 
   changePassword(newPasswordHash: string): void {
@@ -286,14 +261,12 @@ export class User extends AggregateRoot {
 
     this._passwordHash = newPasswordHash;
     this._updatedAt = new Date();
-    this.addDomainEvent(new UserPasswordChangedEvent(this._id));
   }
 
   updateLastLogin(): void {
     const now = new Date();
     this._lastLoginAt = now;
     this._updatedAt = now;
-    this.addDomainEvent(new UserLastLoginUpdatedEvent(this._id, now));
   }
 
   updateProfile(firstName?: FirstName, lastName?: LastName): void {

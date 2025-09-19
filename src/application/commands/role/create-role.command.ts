@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { RoleService } from '@core/services/role.service';
-import { RoleDetailResponse } from '@application/dtos/responses/role.response';
+import { RoleDetailResponse } from '@application/dtos';
 import { IRoleRepository } from '@core/repositories/role.repository.interface';
 import { RoleMapper } from '@application/mappers/role.mapper';
 import { ROLE_REPOSITORY } from '@shared/constants/tokens';

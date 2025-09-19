@@ -13,11 +13,11 @@ import { GetLivenessQuery } from '@application/queries/health/get-liveness.query
 
 // Response interfaces
 import {
-  IHealthResponse,
-  IDatabaseHealthResponse,
-  IReadinessResponse,
-  ILivenessResponse,
-} from '@application/dtos/responses/health.response';
+  HealthCheckResponse,
+  DatabaseHealthResponse,
+  ReadinessResponse,
+  LivenessResponse,
+} from '@application/dtos';
 
 @ApiTags('health')
 @Controller('health')
@@ -42,7 +42,7 @@ export class HealthController {
       },
     },
   })
-  async getHealth(): Promise<IHealthResponse> {
+  async getHealth(): Promise<HealthCheckResponse> {
     return this.queryBus.execute(new GetHealthQuery());
   }
 
@@ -66,7 +66,7 @@ export class HealthController {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     description: 'Database is unhealthy',
   })
-  async getDatabaseHealth(): Promise<IDatabaseHealthResponse> {
+  async getDatabaseHealth(): Promise<DatabaseHealthResponse> {
     return this.queryBus.execute(new GetDatabaseHealthQuery());
   }
 
@@ -96,7 +96,7 @@ export class HealthController {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     description: 'Service is not ready',
   })
-  async getReadiness(): Promise<IReadinessResponse> {
+  async getReadiness(): Promise<ReadinessResponse> {
     return this.queryBus.execute(new GetReadinessQuery());
   }
 
@@ -116,7 +116,7 @@ export class HealthController {
       },
     },
   })
-  async getLiveness(): Promise<ILivenessResponse> {
+  async getLiveness(): Promise<LivenessResponse> {
     return this.queryBus.execute(new GetLivenessQuery());
   }
 }

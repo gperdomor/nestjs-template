@@ -1,6 +1,6 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
-import { IReadinessResponse } from '@application/dtos/responses/health.response';
+import { ReadinessResponse } from '@application/dtos';
 import { HealthService } from '@core/services/health.service';
 
 export class GetReadinessQuery implements IQuery {}
@@ -10,7 +10,7 @@ export class GetReadinessQuery implements IQuery {}
 export class GetReadinessQueryHandler implements IQueryHandler<GetReadinessQuery> {
   constructor(private readonly healthService: HealthService) {}
 
-  async execute(): Promise<IReadinessResponse> {
+  async execute(): Promise<ReadinessResponse> {
     return this.healthService.getReadiness();
   }
 }

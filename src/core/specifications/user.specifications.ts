@@ -1,7 +1,6 @@
 import { Specification } from './specification.base';
 import { User } from '@core/entities/user.entity';
 import { Role } from '@core/entities/role.entity';
-import { RoleId } from '@core/value-objects/role-id.vo';
 
 /**
  * Specification to check if a user is active
@@ -18,19 +17,6 @@ export class ActiveUserSpecification extends Specification<User> {
 export class TwoFactorEnabledSpecification extends Specification<User> {
   isSatisfiedBy(user: User): boolean {
     return user.otpEnabled;
-  }
-}
-
-/**
- * Specification to check if a user has a specific role
- */
-export class UserHasRoleSpecification extends Specification<User> {
-  constructor(private readonly roleId: RoleId) {
-    super();
-  }
-
-  isSatisfiedBy(user: User): boolean {
-    return user.hasRole(this.roleId);
   }
 }
 
@@ -88,17 +74,6 @@ export class CanAssignRoleSpecification extends Specification<User> {
     }
 
     return true;
-  }
-}
-
-/**
- * Specification to check if a user can be deactivated
- */
-export class CanDeactivateUserSpecification extends Specification<User> {
-  isSatisfiedBy(user: User): boolean {
-    // Business rule: Active users can be deactivated
-    // Additional rules can be added here (e.g., cannot deactivate last admin)
-    return user.isActive;
   }
 }
 

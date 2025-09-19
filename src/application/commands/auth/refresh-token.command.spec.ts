@@ -15,7 +15,7 @@ import { UserId } from '@core/value-objects/user-id.vo';
 import { Token } from '@core/value-objects/token.vo';
 import { Role } from '@core/entities/role.entity';
 import { Permission } from '@core/entities/permission.entity';
-import { ResourceAction, ActionType } from '@core/value-objects/resource-action.vo';
+import { ResourceAction, ActionType, ResourceType } from '@core/value-objects/resource-action.vo';
 import { USER_REPOSITORY, ROLE_REPOSITORY } from '@shared/constants/tokens';
 
 // Mock UUID generation
@@ -275,11 +275,11 @@ describe('RefreshTokenCommandHandler', () => {
     // Create roles with permissions for repository responses
     const userRoleWithPermissions = createRoleWithPermissions();
 
-    const adminResourceAction = new ResourceAction('user', ActionType.WRITE);
+    const adminResourceAction = new ResourceAction(ResourceType.USER, ActionType.UPDATE);
     const adminPermission = Permission.fromData({
       id: '550e8400-e29b-41d4-a716-446655440004',
       resourceAction: adminResourceAction,
-      description: 'Can write user details',
+      description: 'Can update user details',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -316,7 +316,7 @@ describe('RefreshTokenCommandHandler', () => {
     // Check that JWT was signed with both permissions
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({
-        permissions: expect.arrayContaining(['user:read', 'user:write']),
+        permissions: expect.arrayContaining(['user:read', 'user:update']),
       }),
       expect.any(Object),
     );

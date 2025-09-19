@@ -11,6 +11,8 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  UseGuards,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -21,21 +23,25 @@ import {
   ApiOperation,
   ApiParam,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 
+import { PermissionsGuard } from '@presentation/guards/permissions.guard';
+import { RequiresResourceAction } from '@shared/decorators/resource-action.decorator';
 import { CurrentUser } from '@shared/decorators/current-user.decorator';
+import { ResourceType, ActionType } from '@core/value-objects/resource-action.vo';
 import { UploadFileCommand } from '@application/commands/storage/upload-file.command';
 import { DeleteFileCommand } from '@application/commands/storage/delete-file.command';
 import { UpdateFileAccessCommand } from '@application/commands/storage/update-file-access.command';
 import { GetFileQuery } from '@application/queries/storage/get-file.query';
 import { GetUserFilesQuery } from '@application/queries/storage/get-user-files.query';
 
-import { UpdateFileAccessDto } from '@application/dtos/storage/update-file-access.dto';
-import { FileResponseDto } from '@application/dtos/responses/file.response';
-import { IJwtPayload } from '@application/dtos/responses/user.response';
+import { UpdateFileAccessRequest, FileResponse, IJwtPayload } from '@application/dtos';
 
 @ApiTags('storage')
 @Controller('storage')
+@UseGuards(PermissionsGuard)
+@ApiBearerAuth('JWT-auth')
 export class StorageController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -43,8 +49,10 @@ export class StorageController {
   ) {}
 
   @Post('upload')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Upload a file' })
+  @RequiresResourceAction(ResourceType.STORAGE, ActionType.CREATE)
+  @ApiOperation({ summary: 'Upload a file (Requires storage:create permission)' })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'File uploaded successfully' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -71,7 +79,7 @@ export class StorageController {
     )
     file: Express.Multer.File,
     @CurrentUser() user: IJwtPayload,
-  ): Promise<FileResponseDto> {
+  ): Promise<FileResponse> {
     const storageFile = {
       buffer: file.buffer,
       originalname: file.originalname,
@@ -83,44 +91,53 @@ export class StorageController {
   }
 
   @Get(':id')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get file by ID' })
+  @RequiresResourceAction(ResourceType.STORAGE, ActionType.READ)
+  @ApiOperation({ summary: 'Get file by ID (Requires storage:read permission)' })
   @ApiParam({ name: 'id', description: 'File ID' })
-  async getFile(
-    @Param('id') id: string,
-    @CurrentUser() user: IJwtPayload,
-  ): Promise<FileResponseDto> {
+  @ApiResponse({ status: HttpStatus.OK, description: 'File retrieved successfully' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'File not found' })
+  async getFile(@Param('id') id: string, @CurrentUser() user: IJwtPayload): Promise<FileResponse> {
     return this.queryBus.execute(new GetFileQuery(id, user.sub));
   }
 
   @Get('user/files')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all files for the current user' })
-  async getUserFiles(@CurrentUser() user: IJwtPayload): Promise<FileResponseDto[]> {
+  @RequiresResourceAction(ResourceType.STORAGE, ActionType.READ)
+  @ApiOperation({
+    summary: 'Get all files for the current user (Requires storage:read permission)',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Files retrieved successfully' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  async getUserFiles(@CurrentUser() user: IJwtPayload): Promise<FileResponse[]> {
     return this.queryBus.execute(new GetUserFilesQuery(user.sub));
   }
 
   @Delete(':id')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Delete a file' })
+  @RequiresResourceAction(ResourceType.STORAGE, ActionType.DELETE)
+  @ApiOperation({ summary: 'Delete a file (Requires storage:delete permission)' })
   @ApiParam({ name: 'id', description: 'File ID' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'File deleted successfully' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'File not found' })
   async deleteFile(@Param('id') id: string, @CurrentUser() user: IJwtPayload): Promise<void> {
     return this.commandBus.execute(new DeleteFileCommand(id, user.sub));
   }
 
-  @Patch('access')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Update file access (public/private)' })
+  @Patch(':id/access')
+  @RequiresResourceAction(ResourceType.STORAGE, ActionType.UPDATE)
+  @ApiOperation({
+    summary: 'Update file access (public/private) - Requires storage:update permission',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'File access updated successfully' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'File not found' })
   async updateFileAccess(
-    @Body() updateFileAccessDto: UpdateFileAccessDto,
+    @Param('id') id: string,
+    @Body() updateFileAccessDto: UpdateFileAccessRequest,
     @CurrentUser() user: IJwtPayload,
-  ): Promise<FileResponseDto> {
+  ): Promise<FileResponse> {
     return this.commandBus.execute(
-      new UpdateFileAccessCommand(
-        updateFileAccessDto.fileId,
-        updateFileAccessDto.isPublic,
-        user.sub,
-      ),
+      new UpdateFileAccessCommand(id, updateFileAccessDto.isPublic, user.sub),
     );
   }
 }

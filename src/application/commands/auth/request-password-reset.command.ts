@@ -1,12 +1,12 @@
 import { ICommand, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { RequestPasswordResetDto } from '@application/dtos/auth/password-reset.dto';
+import { RequestPasswordResetRequest } from '@application/dtos';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '@core/services/auth.service';
 import { EmailProvider } from '@presentation/modules/auth/providers/email.provider';
 import { EntityNotFoundException } from '@core/exceptions/domain-exceptions';
 
 export class RequestPasswordResetCommand implements ICommand {
-  constructor(public readonly dto: RequestPasswordResetDto) {}
+  constructor(public readonly dto: RequestPasswordResetRequest) {}
 }
 
 @Injectable()

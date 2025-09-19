@@ -1,6 +1,5 @@
 import { ICommand, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { LoginDto } from '@application/dtos/auth/login.dto';
-import { AuthResponse } from '@application/dtos/responses/user.response';
+import { LoginRequest, AuthResponse } from '@application/dtos';
 import { UnauthorizedException, Injectable, Inject } from '@nestjs/common';
 import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/services/auth.service';
@@ -12,7 +11,7 @@ import { ROLE_REPOSITORY } from '@shared/constants/tokens';
 import { LoggerService } from '@infrastructure/logger/logger.service';
 
 export class LoginCommand implements ICommand {
-  constructor(public readonly loginDto: LoginDto) {}
+  constructor(public readonly loginDto: LoginRequest) {}
 }
 
 @Injectable()

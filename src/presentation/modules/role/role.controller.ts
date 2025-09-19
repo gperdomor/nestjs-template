@@ -15,12 +15,12 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@ne
 
 // Guards & Decorators
 import { PermissionsGuard } from '@presentation/guards/permissions.guard';
-import { RequirePermissions } from '@shared/decorators/permissions.decorator';
-import { CanWrite, CanDelete } from '@shared/decorators/resource-permissions.decorator';
+import { RequiresResourceAction } from '@shared/decorators/resource-action.decorator';
+import { CurrentUser } from '@shared/decorators/current-user.decorator';
+import { IJwtPayload, CreateRoleRequest, UpdateRoleRequest } from '@application/dtos';
+import { ResourceType, ActionType } from '@core/value-objects/resource-action.vo';
 
 // DTOs
-import { CreateRoleDto } from '@application/dtos/role/create-role.dto';
-import { UpdateRoleDto } from '@application/dtos/role/update-role.dto';
 
 // Queries
 import { GetRolesQuery } from '@application/queries/role/get-roles.query';
@@ -36,7 +36,6 @@ import { RemovePermissionCommand } from '@application/commands/role/remove-permi
 @ApiTags('roles')
 @Controller('roles')
 @UseGuards(PermissionsGuard)
-@RequirePermissions('role:read')
 @ApiBearerAuth('JWT-auth')
 export class RoleController {
   constructor(
@@ -45,36 +44,38 @@ export class RoleController {
   ) {}
 
   @Get()
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.READ)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all roles (Admin only)' })
+  @ApiOperation({ summary: 'Get all roles (Requires role:read permission)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns a list of all roles' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async getAllRoles() {
     return this.queryBus.execute(new GetRolesQuery());
   }
 
   @Get(':id')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.READ)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get role by ID (Admin only)' })
+  @ApiOperation({ summary: 'Get role by ID (Requires role:read permission)' })
   @ApiParam({ name: 'id', description: 'Role ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns role information' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Role not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'User does not have admin role' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Insufficient permissions' })
   async getRoleById(@Param('id') id: string) {
     return this.queryBus.execute(new GetRoleQuery(id));
   }
 
   @Post()
-  @CanWrite('role')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.CREATE)
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create new role (Requires role:write permission)' })
+  @ApiOperation({ summary: 'Create new role (Requires role:create permission)' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Role created successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'User does not have required permission',
   })
-  async createRole(@Body() createRoleDto: CreateRoleDto) {
+  async createRole(@Body() createRoleDto: CreateRoleRequest) {
     return this.commandBus.execute(
       new CreateRoleCommand(
         createRoleDto.name,
@@ -86,9 +87,9 @@ export class RoleController {
   }
 
   @Put(':id')
-  @CanWrite('role')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update role by ID (Requires role:write permission)' })
+  @ApiOperation({ summary: 'Update role by ID (Requires role:update permission)' })
   @ApiParam({ name: 'id', description: 'Role ID', example: '550e8400-e29b-41d4-a716-446655440000' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Role updated successfully' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data' })
@@ -97,7 +98,7 @@ export class RoleController {
     status: HttpStatus.FORBIDDEN,
     description: 'User does not have required permission',
   })
-  async updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  async updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleRequest) {
     return this.commandBus.execute(
       new UpdateRoleCommand(
         id,
@@ -109,7 +110,7 @@ export class RoleController {
   }
 
   @Delete(':id')
-  @CanDelete('role')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.DELETE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete role by ID (Requires role:delete permission)' })
   @ApiParam({ name: 'id', description: 'Role ID', example: '550e8400-e29b-41d4-a716-446655440000' })
@@ -119,16 +120,16 @@ export class RoleController {
     status: HttpStatus.FORBIDDEN,
     description: 'User does not have required permission',
   })
-  async deleteRole(@Param('id') id: string) {
-    await this.commandBus.execute(new DeleteRoleCommand(id));
+  async deleteRole(@Param('id') id: string, @CurrentUser() currentUser: IJwtPayload) {
+    await this.commandBus.execute(new DeleteRoleCommand(id, currentUser.sub));
 
     return { message: 'Role deleted successfully' };
   }
 
   @Post(':roleId/permissions/:permissionId')
-  @CanWrite('role')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Assign permission to role (Requires role:write permission)' })
+  @ApiOperation({ summary: 'Assign permission to role (Requires role:update permission)' })
   @ApiParam({
     name: 'roleId',
     description: 'Role ID',
@@ -153,9 +154,9 @@ export class RoleController {
   }
 
   @Delete(':roleId/permissions/:permissionId')
-  @CanWrite('role')
+  @RequiresResourceAction(ResourceType.ROLE, ActionType.UPDATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Remove permission from role (Requires role:write permission)' })
+  @ApiOperation({ summary: 'Remove permission from role (Requires role:update permission)' })
   @ApiParam({
     name: 'roleId',
     description: 'Role ID',
