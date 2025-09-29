@@ -47,11 +47,12 @@ A comprehensive guide to the NestJS template with authentication, authorization,
     - [Migrations](#migrations)
     - [Seeds](#seeds)
     - [Default Credentials](#default-credentials)
-12. [Tests](#tests)
-13. [Email Service](#email-service)
-14. [Rate Limiting with Throttler](./docs/THROTTLER.md)
-15. [Docker Setup](#docker-setup)
-16. [License](#license)
+12. [Admin Panel](./README-ADMIN.md) - Complete admin interface with user management
+13. [Tests](#tests)
+14. [Email Service](#email-service)
+15. [Rate Limiting with Throttler](./docs/THROTTLER.md)
+16. [Docker Setup](#docker-setup)
+17. [License](#license)
 
 ## Introduction
 
@@ -91,6 +92,13 @@ This NestJS template provides a robust foundation for building secure, well-stru
     - File access control (public/private)
     - Secure signed URLs for private files
     - Integration with the permissions system
+- 🎛️ **Admin Panel**:
+    - Complete admin interface built with Refine and React
+    - User management with advanced search functionality
+    - Role and permission management
+    - File management system
+    - Real-time health monitoring
+    - Dashboard with analytics and metrics
 
 - 🏗️ **Architecture**:
     - Clean Architecture principles

@@ -1,10 +1,10 @@
 # Admin Panel - NestJS Template
 
-## 🎉 Congratulations! 
+## Congratulations! 
 
 You now have a **super admin area** built with **Refine** that connects seamlessly to your NestJS backend! 
 
-## 🚀 Quick Start
+## Quick Start
 
 Both servers are now running:
 
@@ -27,30 +27,12 @@ curl -X POST http://localhost:3000/api/auth/register \
   }'
 ```
 
-## 🎯 Features Implemented
+## Features Implemented
 
-### ✅ Complete Admin Interface
-- **Dashboard** - System overview with metrics and charts
+### Complete Admin Interface
 - **User Management** - Full CRUD operations with role assignment
 - **Role & Permission Management** - Dynamic permission system
-- **File Storage Management** - View and manage uploaded files
 - **Health Monitoring** - Real-time system health checks
-- **Settings Panel** - Profile management and 2FA setup
-
-### ✅ Authentication & Security
-- **JWT-based authentication** with automatic token refresh
-- **Two-Factor Authentication (2FA)** setup and verification
-- **Email verification** flow
-- **Role-based access control** (RBAC)
-- **Session management** with secure logout
-
-### ✅ Advanced Features
-- **Real-time health monitoring** with service status
-- **File upload and management** with preview capabilities
-- **Permission-based UI** hiding/showing features based on user roles
-- **Responsive design** works on desktop and mobile
-- **Search and filtering** across all data tables
-- **Data visualization** with charts and graphs
 
 ## 🏗️ Architecture
 
@@ -150,6 +132,34 @@ The admin panel is configured to proxy API requests to the backend:
 - TOTP verification flow
 - Backup codes (can be implemented)
 
+## 🔍 Search & Filtering Features
+
+### User Search
+The admin panel includes comprehensive search functionality for user management:
+
+**Frontend Features:**
+- **Real-time search** - Filter users as you type in the email column
+- **Filter dropdown** - Dedicated search interface in the email column header
+- **Search icon indicators** - Visual cues for searchable columns
+- **Responsive results** - Instant filtering without page refresh
+
+**Backend Implementation:**
+- **Case-insensitive search** - Finds results regardless of case
+- **Multi-field search** - Searches across email, firstName, and lastName
+- **Pagination support** - Search results are properly paginated
+- **Performance optimized** - Uses database-level filtering for efficiency
+
+**Usage:**
+1. Navigate to the Users page in the admin panel
+2. Click the filter icon (🔍) in the Email column header
+3. Type your search term to filter users in real-time
+4. Results automatically update with matching users
+
+**API Example:**
+```bash
+GET /api/admin/users?search=john&page=1&limit=20
+```
+
 ## 📊 Dashboard Features
 
 ### System Metrics
@@ -200,7 +210,9 @@ npm run preview
 The admin panel integrates with all your backend endpoints:
 
 ### User Management
-- `GET /api/users` - List users with pagination
+- `GET /api/admin/users` - List users with pagination and search
+  - Query parameters: `search`, `page`, `limit`
+  - Search supports: email, firstName, lastName (case-insensitive)
 - `GET /api/users/:id` - Get user details
 - `POST /api/users` - Create new user
 - `PUT /api/users/:id` - Update user
@@ -264,40 +276,5 @@ Enable debug logging in the admin panel:
 // In data provider
 console.log('API Request:', { url, method, data });
 ```
-
-## 🔄 Future Enhancements
-
-### Planned Features
-- [ ] Real-time notifications with WebSockets
-- [ ] Advanced analytics dashboard
-- [ ] Bulk operations for users/roles
-- [ ] Audit log viewer
-- [ ] System configuration panel
-- [ ] Email template editor
-- [ ] Advanced reporting system
-
-### Performance Optimizations
-- [ ] Implement virtual scrolling for large datasets
-- [ ] Add data caching with React Query
-- [ ] Optimize bundle size with code splitting
-- [ ] Add service worker for offline support
-
-## 📝 Contributing
-
-1. Follow the existing code structure
-2. Add TypeScript types for all new features
-3. Test authentication flows thoroughly
-4. Update documentation for new features
-
-## 🎉 You're All Set!
-
-Your super admin area is now ready! You have:
-- ✅ A fully functional admin panel
-- ✅ Complete user and role management
-- ✅ Real-time health monitoring
-- ✅ File management system
-- ✅ 2FA security features
-- ✅ Responsive design
-- ✅ Professional UI with Ant Design
 
 Visit http://localhost:3001 to start using your admin panel!
