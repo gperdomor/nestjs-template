@@ -1,58 +1,41 @@
-import React, { useState } from "react";
-import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Switch, Select, Button, Space, message } from "antd";
-import { useCustomMutation } from "@refinedev/core";
+import React, { useState } from 'react';
+import { Edit, useForm, useSelect } from '@refinedev/antd';
+import { Form, Input, Switch, Select, Button, Space, message } from 'antd';
+import { useCustomMutation } from '@refinedev/core';
 
 export const UserEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({
     onMutationSuccess: () => {
-      message.success("User updated successfully");
+      message.success('User updated successfully');
     },
-    queryOptions: {
-      onSuccess: (data) => {
-        // Set role IDs when user data is loaded
-        const user = data?.data;
-        if (user?.roles && formProps.form) {
-          formProps.form.setFieldsValue({
-            roleIds: user.roles.map((role: any) => role.id),
-          });
-        }
-      },
+    meta: {
+      select: '*,roles(id,name)',
     },
   });
   const userData = queryResult?.data?.data;
   const [changingPassword, setChangingPassword] = useState(false);
 
   const { selectProps: roleSelectProps } = useSelect({
-    resource: "roles",
-    optionLabel: "name",
-    optionValue: "id",
+    resource: 'roles',
+    optionLabel: 'name',
+    optionValue: 'id',
   });
 
   const { mutate: changePassword } = useCustomMutation();
 
   // All form properties are now supported by the backend
 
-  const handlePasswordChange = () => {
-    const newPassword = formProps.form?.getFieldValue("newPassword");
-    const confirmPassword = formProps.form?.getFieldValue("confirmPassword");
-
-    if (newPassword !== confirmPassword) {
-      message.error("Passwords do not match");
-      return;
-    }
-
+  const handlePasswordChange = (values: { newPassword: string; confirmPassword: string }) => {
     changePassword(
       {
         url: `admin/users/${userData?.id}/change-password`,
-        method: "post",
-        values: { newPassword: newPassword },
+        method: 'post',
+        values: { newPassword: values.newPassword },
       },
       {
         onSuccess: () => {
-          message.success("Password changed successfully");
+          message.success('Password changed successfully');
           setChangingPassword(false);
-          formProps.form?.resetFields(["newPassword", "confirmPassword"]);
         },
         onError: (error: any) => {
           const errorMessage = error?.response?.data?.message;
@@ -61,10 +44,10 @@ export const UserEdit: React.FC = () => {
           } else if (typeof errorMessage === 'string') {
             message.error(errorMessage);
           } else {
-            message.error("Failed to change password");
+            message.error('Failed to change password');
           }
         },
-      }
+      },
     );
   };
 
@@ -75,8 +58,8 @@ export const UserEdit: React.FC = () => {
           label="Email"
           name="email"
           rules={[
-            { required: true, message: "Email is required" },
-            { type: "email", message: "Please enter a valid email" },
+            { required: true, message: 'Email is required' },
+            { type: 'email', message: 'Please enter a valid email' },
           ]}
         >
           <Input />
@@ -93,13 +76,9 @@ export const UserEdit: React.FC = () => {
         <Form.Item
           label="Roles"
           name="roleIds"
-          rules={[{ required: true, message: "At least one role is required" }]}
+          rules={[{ required: true, message: 'At least one role is required' }]}
         >
-          <Select
-            {...roleSelectProps}
-            mode="multiple"
-            placeholder="Select roles"
-          />
+          <Select {...roleSelectProps} mode="multiple" placeholder="Select roles" />
         </Form.Item>
 
         <Form.Item label="Active" name="isActive" valuePropName="checked">
@@ -115,31 +94,55 @@ export const UserEdit: React.FC = () => {
         </Form.Item>
       </Form>
 
-      <div style={{ marginTop: 24, padding: 16, border: "1px solid #f0f0f0", borderRadius: 8 }}>
+      <div style={{ marginTop: 24, padding: 16, border: '1px solid #f0f0f0', borderRadius: 8 }}>
         <h4>Change Password</h4>
         {!changingPassword ? (
-          <Button onClick={() => setChangingPassword(true)}>
-            Change User Password
-          </Button>
+          <Button onClick={() => setChangingPassword(true)}>Change User Password</Button>
         ) : (
-          <Space direction="vertical" style={{ width: "100%" }}>
-            <Input.Password
-              placeholder="New Password"
-              onChange={(e) => formProps.form?.setFieldsValue({ newPassword: e.target.value })}
-            />
-            <Input.Password
-              placeholder="Confirm Password"
-              onChange={(e) => formProps.form?.setFieldsValue({ confirmPassword: e.target.value })}
-            />
+          <Form layout="vertical" onFinish={handlePasswordChange}>
+            <Form.Item
+              name="newPassword"
+              label="New Password"
+              rules={[
+                { required: true, message: 'New password is required' },
+                { min: 8, message: 'Password must be at least 8 characters' },
+              ]}
+              style={{ marginBottom: 16 }}
+            >
+              <Input.Password placeholder="New Password" />
+            </Form.Item>
+            <Form.Item
+              name="confirmPassword"
+              label="Confirm Password"
+              dependencies={['newPassword']}
+              rules={[
+                { required: true, message: 'Please confirm your password' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('newPassword') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Passwords do not match'));
+                  },
+                }),
+              ]}
+              style={{ marginBottom: 16 }}
+            >
+              <Input.Password placeholder="Confirm Password" />
+            </Form.Item>
             <Space>
-              <Button type="primary" onClick={handlePasswordChange}>
+              <Button type="primary" htmlType="submit">
                 Update Password
               </Button>
-              <Button onClick={() => setChangingPassword(false)}>
+              <Button
+                onClick={() => {
+                  setChangingPassword(false);
+                }}
+              >
                 Cancel
               </Button>
             </Space>
-          </Space>
+          </Form>
         )}
       </div>
     </Edit>

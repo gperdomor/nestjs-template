@@ -1,14 +1,14 @@
-import React from "react";
-import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Switch, Select } from "antd";
+import React from 'react';
+import { Create, useForm, useSelect } from '@refinedev/antd';
+import { Form, Input, Switch, Select } from 'antd';
 
 export const UserCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm();
 
   const { selectProps: roleSelectProps } = useSelect({
-    resource: "roles",
-    optionLabel: "name",
-    optionValue: "id",
+    resource: 'roles',
+    optionLabel: 'name',
+    optionValue: 'id',
   });
 
   return (
@@ -18,8 +18,8 @@ export const UserCreate: React.FC = () => {
           label="Email"
           name="email"
           rules={[
-            { required: true, message: "Email is required" },
-            { type: "email", message: "Please enter a valid email" },
+            { required: true, message: 'Email is required' },
+            { type: 'email', message: 'Please enter a valid email' },
           ]}
         >
           <Input />
@@ -29,8 +29,8 @@ export const UserCreate: React.FC = () => {
           label="Password"
           name="password"
           rules={[
-            { required: true, message: "Password is required" },
-            { min: 8, message: "Password must be at least 8 characters" },
+            { required: true, message: 'Password is required' },
+            { min: 8, message: 'Password must be at least 8 characters' },
           ]}
         >
           <Input.Password />
@@ -39,7 +39,7 @@ export const UserCreate: React.FC = () => {
         <Form.Item
           label="First Name"
           name="firstName"
-          rules={[{ required: true, message: "First name is required" }]}
+          rules={[{ required: true, message: 'First name is required' }]}
         >
           <Input />
         </Form.Item>
@@ -47,7 +47,7 @@ export const UserCreate: React.FC = () => {
         <Form.Item
           label="Last Name"
           name="lastName"
-          rules={[{ required: true, message: "Last name is required" }]}
+          rules={[{ required: true, message: 'Last name is required' }]}
         >
           <Input />
         </Form.Item>
@@ -55,21 +55,12 @@ export const UserCreate: React.FC = () => {
         <Form.Item
           label="Roles"
           name="roleIds"
-          rules={[{ required: true, message: "At least one role is required" }]}
+          rules={[{ required: true, message: 'At least one role is required' }]}
         >
-          <Select
-            {...roleSelectProps}
-            mode="multiple"
-            placeholder="Select roles"
-          />
+          <Select {...roleSelectProps} mode="multiple" placeholder="Select roles" />
         </Form.Item>
 
-        <Form.Item
-          label="Active"
-          name="isActive"
-          valuePropName="checked"
-          initialValue={true}
-        >
+        <Form.Item label="Active" name="isActive" valuePropName="checked" initialValue={true}>
           <Switch />
         </Form.Item>
 

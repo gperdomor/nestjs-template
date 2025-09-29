@@ -1,35 +1,31 @@
-import { Refine, Authenticated } from "@refinedev/core";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import { Refine, Authenticated } from '@refinedev/core';
+import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import {
   useNotificationProvider,
   ThemedLayoutV2,
   ErrorComponent,
   AuthPage,
   ThemedTitleV2,
-} from "@refinedev/antd";
-import { BrowserRouter, Route, Routes, Outlet } from "react-router-dom";
+} from '@refinedev/antd';
+import { BrowserRouter, Route, Routes, Outlet } from 'react-router-dom';
 import routerBindings, {
   NavigateToResource,
   CatchAllNavigate,
   UnsavedChangesNotifier,
   DocumentTitleHandler,
-} from "@refinedev/react-router-v6";
-import {
-  TeamOutlined,
-  SafetyOutlined,
-  HeartOutlined,
-} from "@ant-design/icons";
-import { App as AntdApp, ConfigProvider, theme } from "antd";
+} from '@refinedev/react-router-v6';
+import { TeamOutlined, SafetyOutlined, HeartOutlined } from '@ant-design/icons';
+import { App as AntdApp, ConfigProvider, theme } from 'antd';
 
-import { authProvider } from "./providers/auth-provider";
-import { dataProvider } from "./providers/data-provider";
+import { authProvider } from './providers/auth-provider';
+import { dataProvider } from './providers/data-provider';
 
 // Pages
-import { UserList, UserShow, UserEdit, UserCreate } from "./pages/users";
-import { RoleList, RoleShow, RoleEdit, RoleCreate } from "./pages/roles";
-import { HealthMonitor } from "./pages/health";
-import { VerifyOtp } from "./pages/auth/verify-otp";
-import { VerifyEmail } from "./pages/auth/verify-email";
+import { UserList, UserShow, UserEdit, UserCreate } from './pages/users';
+import { RoleList, RoleShow, RoleEdit, RoleCreate } from './pages/roles';
+import { HealthMonitor } from './pages/health';
+import { VerifyOtp } from './pages/auth/verify-otp';
+import { VerifyEmail } from './pages/auth/verify-email';
 
 function App() {
   return (
@@ -38,7 +34,7 @@ function App() {
         <ConfigProvider
           theme={{
             token: {
-              colorPrimary: "#1890ff",
+              colorPrimary: '#1890ff',
               borderRadius: 6,
             },
             algorithm: theme.defaultAlgorithm,
@@ -52,30 +48,30 @@ function App() {
               routerProvider={routerBindings}
               resources={[
                 {
-                  name: "users",
-                  list: "/users",
-                  show: "/users/show/:id",
-                  create: "/users/create",
-                  edit: "/users/edit/:id",
+                  name: 'users',
+                  list: '/users',
+                  show: '/users/show/:id',
+                  create: '/users/create',
+                  edit: '/users/edit/:id',
                   meta: {
                     icon: <TeamOutlined />,
                   },
                 },
                 {
-                  name: "roles",
-                  list: "/roles",
-                  show: "/roles/show/:id",
-                  create: "/roles/create",
-                  edit: "/roles/edit/:id",
+                  name: 'roles',
+                  list: '/roles',
+                  show: '/roles/show/:id',
+                  create: '/roles/create',
+                  edit: '/roles/edit/:id',
                   meta: {
                     icon: <SafetyOutlined />,
                   },
                 },
                 {
-                  name: "health",
-                  list: "/health",
+                  name: 'health',
+                  list: '/health',
                   meta: {
-                    label: "Health Monitor",
+                    label: 'Health Monitor',
                     icon: <HeartOutlined />,
                   },
                 },
@@ -83,9 +79,9 @@ function App() {
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
-                projectId: "nestjs-admin",
+                projectId: 'nestjs-admin',
                 title: {
-                  text: "Admin Panel",
+                  text: 'Admin Panel',
                   icon: <TeamOutlined />,
                 },
               }}
@@ -112,7 +108,7 @@ function App() {
                   }
                 >
                   <Route index element={<UserList />} />
-                  
+
                   {/* Users */}
                   <Route path="/users">
                     <Route index element={<UserList />} />
@@ -131,7 +127,6 @@ function App() {
 
                   {/* Health */}
                   <Route path="/health" element={<HealthMonitor />} />
-
 
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
@@ -155,12 +150,6 @@ function App() {
                             icon={<TeamOutlined />}
                           />
                         }
-                        formProps={{
-                          initialValues: {
-                            email: "",
-                            password: "",
-                          },
-                        }}
                       />
                     }
                   />
