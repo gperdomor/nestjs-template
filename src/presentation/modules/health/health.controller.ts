@@ -7,18 +7,18 @@ import { Public } from '@shared/decorators/public.decorator';
 
 // Queries
 import { GetHealthQuery } from '@application/queries/health/get-health.query';
-import { GetDatabaseHealthQuery } from '@application/queries/health/get-database-health.query';
-import { GetReadinessQuery } from '@application/queries/health/get-readiness.query';
-import { GetLivenessQuery } from '@application/queries/health/get-liveness.query';
 
 // Response interfaces
-import {
-  HealthCheckResponse,
-  DatabaseHealthResponse,
-  ReadinessResponse,
-  LivenessResponse,
-} from '@application/dtos';
+import { HealthCheckResponse } from '@application/dtos';
+import { SkipThrottle } from '@shared/decorators/throttle.decorator';
 
+/**
+ * Controller responsible for handling public health check requests.
+ *
+ * This controller exposes an endpoint that can be used by infrastructure or monitoring tools
+ * to verify the application's health status. It returns information such as service status,
+ * uptime, environment, and version, allowing external systems to monitor the application's availability.
+ */
 @ApiTags('health')
 @Controller('health')
 export class HealthController {
@@ -26,6 +26,7 @@ export class HealthController {
 
   @Public()
   @Get()
+  @SkipThrottle()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({
@@ -44,79 +45,5 @@ export class HealthController {
   })
   async getHealth(): Promise<HealthCheckResponse> {
     return this.queryBus.execute(new GetHealthQuery());
-  }
-
-  @Public()
-  @Get('database')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Database health check' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Database is healthy',
-    schema: {
-      type: 'object',
-      properties: {
-        status: { type: 'string', example: 'ok' },
-        database: { type: 'string', example: 'connected' },
-        timestamp: { type: 'string', format: 'date-time' },
-      },
-    },
-  })
-  @ApiResponse({
-    status: HttpStatus.SERVICE_UNAVAILABLE,
-    description: 'Database is unhealthy',
-  })
-  async getDatabaseHealth(): Promise<DatabaseHealthResponse> {
-    return this.queryBus.execute(new GetDatabaseHealthQuery());
-  }
-
-  @Public()
-  @Get('ready')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Readiness probe for Kubernetes' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Service is ready',
-    schema: {
-      type: 'object',
-      properties: {
-        status: { type: 'string', example: 'ready' },
-        timestamp: { type: 'string', format: 'date-time' },
-        checks: {
-          type: 'object',
-          properties: {
-            database: { type: 'string', example: 'ok' },
-            config: { type: 'string', example: 'ok' },
-          },
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: HttpStatus.SERVICE_UNAVAILABLE,
-    description: 'Service is not ready',
-  })
-  async getReadiness(): Promise<ReadinessResponse> {
-    return this.queryBus.execute(new GetReadinessQuery());
-  }
-
-  @Public()
-  @Get('live')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Liveness probe for Kubernetes' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Service is alive',
-    schema: {
-      type: 'object',
-      properties: {
-        status: { type: 'string', example: 'alive' },
-        timestamp: { type: 'string', format: 'date-time' },
-        uptime: { type: 'number', example: 12345.67 },
-      },
-    },
-  })
-  async getLiveness(): Promise<LivenessResponse> {
-    return this.queryBus.execute(new GetLivenessQuery());
   }
 }

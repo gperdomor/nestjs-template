@@ -54,7 +54,6 @@ export class HealthCheckResponse {
     description: 'Health check details by service',
     example: {
       database: { status: 'up' },
-      redis: { status: 'up' },
     },
     required: false,
   })
@@ -71,7 +70,6 @@ export class HealthCheckResponse {
     description: 'Detailed service information including response times',
     example: {
       database: { status: 'up', responseTime: 5 },
-      redis: { status: 'up', responseTime: 2 },
     },
     required: false,
   })
@@ -136,6 +134,13 @@ export class ReadinessResponse {
   timestamp?: string;
 
   @ApiProperty({
+    description: 'Database connection status',
+    example: true,
+    required: false,
+  })
+  database?: boolean;
+
+  @ApiProperty({
     description: 'Readiness check results',
     example: { database: 'ok', config: 'ok' },
     required: false,
@@ -184,6 +189,20 @@ export class LivenessResponse {
     required: false,
   })
   uptime?: number;
+
+  @ApiProperty({
+    description: 'Memory usage percentage',
+    example: 45.2,
+    required: false,
+  })
+  memoryUsage?: number;
+
+  @ApiProperty({
+    description: 'CPU usage percentage',
+    example: 12.8,
+    required: false,
+  })
+  cpuUsage?: number;
 
   @ApiProperty({
     description: 'Liveness check details',

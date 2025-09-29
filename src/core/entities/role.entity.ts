@@ -112,6 +112,12 @@ export class Role {
     this._updatedAt = new Date();
   }
 
+  // Method to add permissions during creation without validation
+  addPermissionsOnCreation(permissions: Permission[]): void {
+    this._permissions.push(...permissions);
+    this._updatedAt = new Date();
+  }
+
   removePermission(permissionId: PermissionId): void {
     const permissionExists = this._permissions.some(p => p.id.equals(permissionId));
     if (!permissionExists) {

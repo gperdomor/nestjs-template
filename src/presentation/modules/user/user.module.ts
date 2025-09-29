@@ -14,26 +14,19 @@ import { CoreModule } from '@core/core.module';
 // Services
 import { UserService } from '@core/services/user.service';
 
-// Query Handlers
+// Profile-specific Query Handlers (shared handlers are in AdminModule)
 import { GetUserQueryHandler } from '@application/queries/user/get-user.query';
-import { GetUsersQueryHandler } from '@application/queries/user/get-users.query';
 
-// Command Handlers
+// Profile-specific Command Handlers (shared handlers are in AdminModule)
 import { UpdateUserCommandHandler } from '@application/commands/user/update-user.command';
 import { ChangePasswordCommandHandler } from '@application/commands/user/change-password.command';
-import { ActivateUserCommandHandler } from '@application/commands/user/activate-user.command';
-import { AssignRoleCommandHandler } from '@application/commands/user/assign-role.command';
-import { RemoveRoleCommandHandler } from '@application/commands/user/remove-role.command';
 import { VerifyPasswordCommandHandler } from '@application/commands/user/verify-password.command';
 
-const queryHandlers = [GetUserQueryHandler, GetUsersQueryHandler];
+const queryHandlers = [GetUserQueryHandler];
 
 const commandHandlers = [
   UpdateUserCommandHandler,
   ChangePasswordCommandHandler,
-  ActivateUserCommandHandler,
-  AssignRoleCommandHandler,
-  RemoveRoleCommandHandler,
   VerifyPasswordCommandHandler,
 ];
 
@@ -63,6 +56,6 @@ const commandHandlers = [
     // Command handlers
     ...commandHandlers,
   ],
-  exports: [UserService],
+  exports: [UserService, USER_REPOSITORY],
 })
 export class UserModule {}

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEmail, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsEmail, MaxLength, IsArray, IsBoolean } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserRequest {
@@ -30,4 +30,22 @@ export class UpdateUserRequest {
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsOptional()
   email?: string;
+
+  @ApiPropertyOptional({
+    description: 'Role IDs to assign to the user',
+    example: ['uuid1', 'uuid2'],
+    type: [String],
+  })
+  @IsArray({ message: 'Role IDs must be an array' })
+  @IsString({ each: true, message: 'Each role ID must be a string' })
+  @IsOptional()
+  roleIds?: string[];
+
+  @ApiPropertyOptional({
+    description: 'User activation status',
+    example: true,
+  })
+  @IsBoolean({ message: 'Active status must be a boolean' })
+  @IsOptional()
+  isActive?: boolean;
 }

@@ -42,6 +42,13 @@ export class StorageService {
     return this.fileRepository.findByUserId(userId);
   }
 
+  async getAllFiles(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ files: File[]; total: number }> {
+    return this.fileRepository.findAll(page, limit);
+  }
+
   async deleteFile(id: string): Promise<void> {
     const file = await this.fileRepository.findById(id);
     if (file) {

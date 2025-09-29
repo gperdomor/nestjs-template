@@ -30,7 +30,7 @@ export default () => ({
   // Throttler
   throttler: {
     ttl: parseInt(process.env.THROTTLER_TTL || '60', 10),
-    limit: parseInt(process.env.THROTTLER_LIMIT || '10', 10),
+    limit: parseInt(process.env.THROTTLER_LIMIT || '60', 10),
     ignoreUserAgents: process.env.THROTTLER_IGNORE_USER_AGENTS
       ? process.env.THROTTLER_IGNORE_USER_AGENTS.split(',')
       : [],

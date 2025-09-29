@@ -113,6 +113,57 @@ export class UserRepository extends BaseRepository<User> implements IUserReposit
     });
   }
 
+  async findWithFilters(filters: {
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ users: User[]; total: number }> {
+    return this.executeWithErrorHandling('findWithFilters', async () => {
+      const { search, limit = 20, offset = 0 } = filters;
+
+      // Build where clause for search
+      const where = search
+        ? {
+            OR: [
+              { email: { contains: search, mode: 'insensitive' as const } },
+              { firstName: { contains: search, mode: 'insensitive' as const } },
+              { lastName: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {};
+
+      // Get total count
+      const total = await this.prisma.user.count({ where });
+
+      // Get users with pagination
+      const userRecords = await this.prisma.user.findMany({
+        where,
+        include: {
+          roles: {
+            include: {
+              role: {
+                include: {
+                  permissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        take: limit,
+        skip: offset,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const users = userRecords.map(record => this.mapToModel(record as UserWithRelations));
+
+      return { users, total };
+    });
+  }
+
   async findUsersByRoleId(roleId: string): Promise<User[]> {
     return this.executeWithErrorHandling('findUsersByRoleId', async () => {
       const userRecords = await this.prisma.user.findMany({

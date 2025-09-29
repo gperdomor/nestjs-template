@@ -1,5 +1,6 @@
 import { Controller, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { CommandBus } from '@nestjs/cqrs';
 
 // Guards & Decorators
 import { PermissionsGuard } from '@presentation/guards/permissions.guard';
@@ -11,12 +12,12 @@ import { ResourceType, ActionType } from '@core/value-objects/resource-action.vo
 @ApiTags('admin')
 @Controller('admin')
 @UseGuards(PermissionsGuard)
-@RequiresAdmin()
 @ApiBearerAuth('JWT-auth')
 export class AdminController {
-  constructor() {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @Get('dashboard')
+  @RequiresAdmin()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get admin dashboard data (Admin only)' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns dashboard statistics' })
@@ -33,6 +34,7 @@ export class AdminController {
   }
 
   @Get('system-info')
+  @RequiresAdmin()
   @HttpCode(HttpStatus.OK)
   @RequiresSensitive()
   @ApiOperation({ summary: 'Get system information (Requires 2FA)' })
@@ -50,6 +52,7 @@ export class AdminController {
   }
 
   @Get('audit-logs')
+  @RequiresAdmin()
   @HttpCode(HttpStatus.OK)
   @RequiresResourceAction(ResourceType.AUDIT, ActionType.READ)
   @ApiOperation({ summary: 'Get audit logs (Requires specific permission)' })

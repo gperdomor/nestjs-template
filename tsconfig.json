@@ -32,6 +32,7 @@
     "test/**/*",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "**/*.d.ts" // Exclude .d.ts files from compilation
+    "**/*.d.ts", // Exclude .d.ts files from compilation
+    "admin/**/*"
   ]
 }

@@ -5,20 +5,46 @@ import { UserDetailResponse } from '@application/dtos';
 import { UserMapper } from '@application/mappers/user.mapper';
 import { USER_REPOSITORY } from '@shared/constants/tokens';
 
-export class GetUsersQuery implements IQuery {}
+export interface IGetUsersResult {
+  users: UserDetailResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export class GetUsersQuery implements IQuery {
+  constructor(
+    public readonly search?: string,
+    public readonly page: number = 1,
+    public readonly limit: number = 20,
+  ) {}
+}
 
 @Injectable()
 @QueryHandler(GetUsersQuery)
-export class GetUsersQueryHandler implements IQueryHandler<GetUsersQuery> {
+export class GetUsersQueryHandler implements IQueryHandler<GetUsersQuery, IGetUsersResult> {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
   ) {}
 
-  async execute(): Promise<UserDetailResponse[]> {
-    const users = await this.userRepository.findAll();
+  async execute(query: GetUsersQuery): Promise<IGetUsersResult> {
+    const { search, page, limit } = query;
+    const offset = (page - 1) * limit;
 
-    // Use the mapper to convert each user to response DTO
-    return users.map(user => UserMapper.toDetailResponse(user));
+    const { users, total } = await this.userRepository.findWithFilters({
+      search,
+      limit,
+      offset,
+    });
+
+    return {
+      users: users.map(user => UserMapper.toDetailResponse(user)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }
