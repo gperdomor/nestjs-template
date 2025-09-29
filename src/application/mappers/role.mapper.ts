@@ -9,10 +9,10 @@ export class RoleMapper {
   static toPermissionResponse(permission: Permission): PermissionResponse {
     return {
       id: permission.id.getValue(),
-      name: permission.name.getValue(),
+      name: permission.getPermissionName(),
       description: permission.description,
-      resource: permission.resourceAction.getResource(),
-      action: permission.resourceAction.getAction().toString(),
+      resource: permission.getResource(),
+      action: permission.getAction(),
     };
   }
 

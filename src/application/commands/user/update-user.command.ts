@@ -9,6 +9,8 @@ export class UpdateUserCommand {
     public readonly firstName?: string,
     public readonly lastName?: string,
     public readonly email?: string,
+    public readonly roleIds?: string[],
+    public readonly isActive?: boolean,
   ) {}
 }
 
@@ -19,9 +21,16 @@ export class UpdateUserCommandHandler
   constructor(private readonly userService: UserService) {}
 
   async execute(command: UpdateUserCommand): Promise<UserBaseResponse> {
-    const { userId, firstName, lastName, email } = command;
+    const { userId, firstName, lastName, email, roleIds, isActive } = command;
 
-    const user = await this.userService.updateUserDetails(userId, firstName, lastName, email);
+    const user = await this.userService.updateUserDetails(
+      userId,
+      firstName,
+      lastName,
+      email,
+      roleIds,
+      isActive,
+    );
 
     // Use the mapper to convert to response DTO
     return UserMapper.toBaseResponse(user);

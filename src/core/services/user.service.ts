@@ -92,6 +92,8 @@ export class UserService {
     firstName?: string,
     lastName?: string,
     emailStr?: string,
+    roleIds?: string[],
+    isActive?: boolean,
   ): Promise<User> {
     const user = await this.userRepository.findById(userId);
 
@@ -117,6 +119,40 @@ export class UserService {
       }
 
       user.changeEmail(email);
+    }
+
+    // Handle role updates
+    if (roleIds !== undefined) {
+      // Get current role IDs
+      const currentRoleIds = user.roles.map(role => role.id.getValue());
+      const newRoleIds = [...new Set(roleIds)]; // Remove duplicates
+
+      // Remove roles that are no longer selected
+      for (const currentRoleId of currentRoleIds) {
+        if (!newRoleIds.includes(currentRoleId)) {
+          user.removeRole(RoleId.fromString(currentRoleId));
+        }
+      }
+
+      // Add new roles that weren't previously assigned
+      for (const roleIdStr of newRoleIds) {
+        if (!currentRoleIds.includes(roleIdStr)) {
+          const role = await this.roleRepository.findById(roleIdStr);
+          if (!role) {
+            throw new EntityNotFoundException('Role', roleIdStr);
+          }
+          user.addRole(role);
+        }
+      }
+    }
+
+    // Handle activation status update
+    if (isActive !== undefined) {
+      if (isActive) {
+        user.activate();
+      } else {
+        user.deactivate();
+      }
     }
 
     // Entity handles updating timestamps
@@ -225,6 +261,15 @@ export class UserService {
     user.deactivate();
 
     return this.userRepository.update(user);
+  }
+
+  async getUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new EntityNotFoundException('User', userId);
+    }
+
+    return user;
   }
 
   async hashPassword(password: string): Promise<string> {

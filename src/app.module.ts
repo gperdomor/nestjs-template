@@ -10,7 +10,6 @@ import { I18nModule } from '@infrastructure/i18n/i18n.module';
 import { LoggerModule } from '@infrastructure/logger/logger.module';
 import { AuthModule } from '@presentation/modules/auth/auth.module';
 import { UserModule } from '@presentation/modules/user/user.module';
-import { RoleModule } from '@presentation/modules/role/role.module';
 import { AdminModule } from '@presentation/modules/admin/admin.module';
 import { StorageModule } from '@presentation/modules/storage/storage.module';
 import { HealthModule } from '@presentation/modules/health/health.module';
@@ -56,7 +55,6 @@ import configuration from '@infrastructure/config/configuration';
     // Feature Modules
     AuthModule,
     UserModule,
-    RoleModule,
     AdminModule,
     StorageModule,
     HealthModule,

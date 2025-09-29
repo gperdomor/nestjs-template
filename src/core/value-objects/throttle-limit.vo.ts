@@ -19,7 +19,7 @@ export class ThrottleLimit {
   }
 
   static createDefault(): ThrottleLimit {
-    return new ThrottleLimit(60, 10);
+    return new ThrottleLimit(60, 60);
   }
 
   get getTtl(): number {

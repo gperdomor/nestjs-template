@@ -4,6 +4,7 @@ import { RoleService } from '@core/services/role.service';
 import { RoleDetailResponse } from '@application/dtos';
 import { IRoleRepository } from '@core/repositories/role.repository.interface';
 import { RoleMapper } from '@application/mappers/role.mapper';
+import { Role } from '@core/entities/role.entity';
 import { ROLE_REPOSITORY } from '@shared/constants/tokens';
 
 export class CreateRoleCommand {
@@ -28,24 +29,22 @@ export class CreateRoleCommandHandler
   async execute(command: CreateRoleCommand): Promise<RoleDetailResponse> {
     const { name, description, isDefault, permissionIds } = command;
 
-    // Create the role first
-    const role = await this.roleService.createRole(name, description, isDefault);
+    let role: Role;
 
-    // If permission IDs are provided, assign them to the role
+    // If permission IDs are provided, create role with permissions in one step
     if (permissionIds && permissionIds.length > 0) {
-      for (const permissionId of permissionIds) {
-        await this.roleService.assignPermissionToRole(role.id.getValue(), permissionId);
-      }
-    }
-
-    // Get the updated role with permissions
-    const updatedRole = await this.roleRepository.findById(role.id.getValue());
-
-    if (!updatedRole) {
-      throw new Error('Role not found after creation');
+      role = await this.roleService.createRoleWithPermissions(
+        name,
+        description,
+        permissionIds,
+        isDefault,
+      );
+    } else {
+      // Create the role without permissions
+      role = await this.roleService.createRole(name, description, isDefault);
     }
 
     // Use the mapper to convert to response DTO
-    return RoleMapper.toDetailResponse(updatedRole);
+    return RoleMapper.toDetailResponse(role);
   }
 }

@@ -45,6 +45,47 @@ export class RoleService {
     return this.roleRepository.create(role);
   }
 
+  async createRoleWithPermissions(
+    name: string,
+    description: string,
+    permissionIds: string[],
+    isDefault: boolean = false,
+  ): Promise<Role> {
+    // Check if a role already exists
+    const existingRole = await this.roleRepository.findByName(name);
+    if (existingRole) {
+      throw new EntityAlreadyExistsException('Role', 'name');
+    }
+
+    // If this is a default role, unset any existing default role
+    if (isDefault) {
+      const currentDefaultRole = await this.roleRepository.findDefaultRole();
+      if (currentDefaultRole) {
+        currentDefaultRole.removeAsDefault();
+        await this.roleRepository.update(currentDefaultRole);
+      }
+    }
+
+    const role = Role.create(name, description, isDefault);
+
+    // Get unique permission IDs and add permissions directly during creation
+    const uniquePermissionIds = [...new Set(permissionIds)];
+    const permissions = [];
+
+    for (const permissionId of uniquePermissionIds) {
+      const permission = await this.permissionRepository.findById(permissionId);
+      if (!permission) {
+        throw new EntityNotFoundException('Permission', permissionId);
+      }
+      permissions.push(permission);
+    }
+
+    // Add all permissions at once without validation
+    role.addPermissionsOnCreation(permissions);
+
+    return this.roleRepository.create(role);
+  }
+
   async updateRole(
     id: string,
     name?: string,

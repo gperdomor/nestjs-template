@@ -1,36 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-
-export class PermissionResponse {
-  @ApiProperty({
-    description: 'Permission ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
-  })
-  id!: string;
-
-  @ApiProperty({
-    description: 'Permission name (resource:action format)',
-    example: 'user:read',
-  })
-  name!: string;
-
-  @ApiProperty({
-    description: 'Permission description',
-    example: 'Can read user information',
-  })
-  description!: string;
-
-  @ApiProperty({
-    description: 'Resource type this permission applies to',
-    example: 'user',
-  })
-  resource!: string;
-
-  @ApiProperty({
-    description: 'Action type this permission allows',
-    example: 'read',
-  })
-  action!: string;
-}
+import { PermissionResponse } from '../permission/permission.response';
 
 export class RoleDetailResponse {
   @ApiProperty({

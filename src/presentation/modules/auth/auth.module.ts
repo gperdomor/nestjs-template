@@ -34,12 +34,9 @@ import { PrismaModule } from '@infrastructure/database/prisma/prisma.module';
 import { I18nModule } from '@infrastructure/i18n/i18n.module';
 import { CoreModule } from '@core/core.module';
 
-// Command Handlers
+// Auth-specific Command Handlers (shared handlers are in AdminModule)
 import { RegisterUserCommandHandler } from '@application/commands/auth/register-user.command';
-import { LoginCommandHandler } from '@application/commands/auth/login.command';
 import { VerifyOtpCommandHandler } from '@application/commands/auth/verify-otp.command';
-import { RefreshTokenCommandHandler } from '@application/commands/auth/refresh-token.command';
-import { LogoutCommandHandler } from '@application/commands/auth/logout.command';
 import { SendVerificationEmailCommandHandler } from '@application/commands/auth/send-verification-email.command';
 import { VerifyEmailCommandHandler } from '@application/commands/auth/verify-email.command';
 import { CheckEmailVerificationStatusCommandHandler } from '@application/commands/auth/check-email-verification-status.command';
@@ -50,11 +47,9 @@ import { ResetPasswordCommandHandler } from '@application/commands/auth/reset-pa
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 const commandHandlers = [
+  // Auth-specific handlers only (shared handlers are in AdminModule)
   RegisterUserCommandHandler,
-  LoginCommandHandler,
   VerifyOtpCommandHandler,
-  RefreshTokenCommandHandler,
-  LogoutCommandHandler,
   SendVerificationEmailCommandHandler,
   VerifyEmailCommandHandler,
   CheckEmailVerificationStatusCommandHandler,

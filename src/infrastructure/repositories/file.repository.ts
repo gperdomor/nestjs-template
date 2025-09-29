@@ -44,6 +44,24 @@ export class FileRepository extends BaseRepository<File> implements IFileReposit
     return files.map(file => this.mapToEntity(file));
   }
 
+  async findAll(page: number = 1, limit: number = 20): Promise<{ files: File[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [files, total] = await Promise.all([
+      this.prisma.file.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.file.count(),
+    ]);
+
+    return {
+      files: files.map(file => this.mapToEntity(file)),
+      total,
+    };
+  }
+
   async findByPath(path: string): Promise<File | null> {
     const fileData = await this.prisma.file.findFirst({
       where: { path },

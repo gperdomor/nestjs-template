@@ -38,7 +38,7 @@ describe('ThrottleLimit', () => {
       const throttleLimit = ThrottleLimit.createDefault();
 
       expect(throttleLimit.getTtl).toBe(60);
-      expect(throttleLimit.getLimit).toBe(10);
+      expect(throttleLimit.getLimit).toBe(60);
     });
   });
 

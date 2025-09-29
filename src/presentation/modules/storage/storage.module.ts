@@ -12,6 +12,7 @@ import { UpdateFileAccessCommandHandler } from '@application/commands/storage/up
 // Queries
 import { GetFileQueryHandler } from '@application/queries/storage/get-file.query';
 import { GetUserFilesQueryHandler } from '@application/queries/storage/get-user-files.query';
+import { GetAllFilesQueryHandler } from '@application/queries/storage/get-all-files.query';
 
 // Mappers
 import { FileMapper } from '@application/mappers/file.mapper';
@@ -22,7 +23,7 @@ const CommandHandlers = [
   UpdateFileAccessCommandHandler,
 ];
 
-const QueryHandlers = [GetFileQueryHandler, GetUserFilesQueryHandler];
+const QueryHandlers = [GetFileQueryHandler, GetUserFilesQueryHandler, GetAllFilesQueryHandler];
 
 @Module({
   imports: [CqrsModule, CoreModule, InfrastructureStorageModule.register({ global: true })],

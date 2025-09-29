@@ -62,11 +62,7 @@ export class HealthService {
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      this.logger.error(
-        'Database health check failed',
-        undefined,
-        JSON.stringify({ error: error.message }),
-      );
+      this.logger.error(`Database health check failed: ${error.message}`, error.stack);
       throw new DatabaseConnectionException('Database connection failed');
     }
   }
@@ -78,12 +74,17 @@ export class HealthService {
     this.logger.debug('Performing readiness check');
 
     try {
-      // Perform comprehensive readiness checks
-      const checks = await Promise.allSettled([
-        this.checkDatabase(),
-        this.checkConfiguration(),
-        this.checkExternalDependencies(),
-      ]);
+      // Perform individual checks and track results
+      const checkResults = {
+        database: false,
+        config: false,
+      };
+
+      const checks = await Promise.allSettled([this.checkDatabase(), this.checkConfiguration()]);
+
+      // Map check results
+      checkResults.database = checks[0].status === 'fulfilled';
+      checkResults.config = checks[1].status === 'fulfilled';
 
       const failedChecks = checks.filter(check => check.status === 'rejected');
 
@@ -92,8 +93,17 @@ export class HealthService {
           check.status === 'rejected' ? check.reason?.message : 'Unknown error',
         );
 
-        this.logger.error('Readiness check failed', undefined, JSON.stringify({ failures }));
-        throw new HealthCheckException(`Service not ready: ${failures.join(', ')}`);
+        this.logger.warn(`Some readiness checks failed: ${JSON.stringify({ failures })}`);
+
+        return {
+          status: 'error',
+          timestamp: new Date().toISOString(),
+          database: checkResults.database,
+          checks: {
+            database: checkResults.database ? 'ok' : 'error',
+            config: checkResults.config ? 'ok' : 'error',
+          },
+        };
       }
 
       this.logger.debug('Readiness check passed');
@@ -101,17 +111,14 @@ export class HealthService {
       return {
         status: 'ready',
         timestamp: new Date().toISOString(),
+        database: checkResults.database,
         checks: {
           database: 'ok',
           config: 'ok',
         },
       };
     } catch (error) {
-      this.logger.error(
-        'Readiness check failed',
-        undefined,
-        JSON.stringify({ error: error.message }),
-      );
+      this.logger.error(`Readiness check failed: ${error.message}`, error.stack);
       throw new HealthCheckException('Service not ready');
     }
   }
@@ -122,11 +129,16 @@ export class HealthService {
   async getLiveness(): Promise<LivenessResponse> {
     this.logger.debug('Performing liveness check');
 
+    // Get memory and CPU metrics
+    const { memoryUsage, cpuUsage } = await this.getSystemMetrics();
+
     // Liveness should be lightweight - just verify the process is responsive
     return {
       status: 'alive',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      memoryUsage,
+      cpuUsage,
     };
   }
 
@@ -252,6 +264,25 @@ export class HealthService {
         duration,
       };
     }
+  }
+
+  private async getSystemMetrics(): Promise<{ memoryUsage: number; cpuUsage: number }> {
+    // Memory usage calculation
+    const memUsage = process.memoryUsage();
+    const totalMemory = memUsage.heapTotal + memUsage.external + memUsage.arrayBuffers;
+    const usedMemory = memUsage.heapUsed + memUsage.external + memUsage.arrayBuffers;
+    const memoryUsage = Math.round((usedMemory / totalMemory) * 100 * 100) / 100;
+
+    // CPU usage calculation (simplified)
+    const startUsage = process.cpuUsage();
+    await new Promise(resolve => setTimeout(resolve, 100)); // 100ms sampling
+    const endUsage = process.cpuUsage(startUsage);
+
+    // Convert microseconds to milliseconds and calculate percentage
+    const totalCpuTime = (endUsage.user + endUsage.system) / 1000; // Convert to ms
+    const cpuUsage = Math.min(Math.round((totalCpuTime / 100) * 100) / 100, 100); // Cap at 100%
+
+    return { memoryUsage, cpuUsage };
   }
 
   private getApplicationVersion(): string {
