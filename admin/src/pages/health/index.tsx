@@ -1,5 +1,17 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Card, Row, Col, Tag, Progress, Typography, Button, Space, Alert, Descriptions, List } from "antd";
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  Card,
+  Row,
+  Col,
+  Tag,
+  Progress,
+  Typography,
+  Button,
+  Space,
+  Alert,
+  Descriptions,
+  List,
+} from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -7,8 +19,8 @@ import {
   DatabaseOutlined,
   ApiOutlined,
   ClockCircleOutlined,
-} from "@ant-design/icons";
-import { useCustom } from "@refinedev/core";
+} from '@ant-design/icons';
+import { useCustom } from '@refinedev/core';
 
 const { Title, Text } = Typography;
 
@@ -17,23 +29,23 @@ export const HealthMonitor: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: healthResponse, refetch } = useCustom({
-    url: "/admin/health",
-    method: "get",
+    url: '/admin/health',
+    method: 'get',
   });
 
   const { data: dbHealthResponse, refetch: refetchDb } = useCustom({
-    url: "/admin/health/database",
-    method: "get",
+    url: '/admin/health/database',
+    method: 'get',
   });
 
   const { data: readinessResponse, refetch: refetchReadiness } = useCustom({
-    url: "/admin/health/readiness",
-    method: "get",
+    url: '/admin/health/readiness',
+    method: 'get',
   });
 
   const { data: livenessResponse, refetch: refetchLiveness } = useCustom({
-    url: "/admin/health/liveness",
-    method: "get",
+    url: '/admin/health/liveness',
+    method: 'get',
   });
 
   // Extract nested data from responses
@@ -45,68 +57,65 @@ export const HealthMonitor: React.FC = () => {
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return; // Prevent multiple simultaneous refreshes
-    
+
     setIsRefreshing(true);
     try {
-      await Promise.all([
-        refetch?.(),
-        refetchDb?.(),
-        refetchReadiness?.(),
-        refetchLiveness?.()
-      ].filter(Boolean));
+      await Promise.all(
+        [refetch?.(), refetchDb?.(), refetchReadiness?.(), refetchLiveness?.()].filter(Boolean),
+      );
       setLastChecked(new Date());
     } catch (error) {
-      console.error("Failed to refresh health data:", error);
+      console.error('Failed to refresh health data:', error);
     } finally {
       setTimeout(() => setIsRefreshing(false), 1000);
     }
   }, [refetch, refetchDb, refetchReadiness, refetchLiveness, isRefreshing]);
-  
+
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       handleRefresh();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, [handleRefresh]);
 
   const getStatusColor = (status: string | undefined) => {
-    if (!status) return "default";
+    if (!status) return 'default';
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case "up":
-      case "ok":
-      case "healthy":
-      case "ready":
-      case "alive":
-      case "connected":
-        return "success";
-      case "down":
-      case "error":
-      case "unhealthy":
-      case "disconnected":
-        return "error";
+      case 'up':
+      case 'ok':
+      case 'healthy':
+      case 'ready':
+      case 'alive':
+      case 'connected':
+        return 'success';
+      case 'down':
+      case 'error':
+      case 'unhealthy':
+      case 'disconnected':
+        return 'error';
       default:
-        return "warning";
+        return 'warning';
     }
   };
 
   const getStatusIcon = (status: string | undefined) => {
     if (!status) return <ClockCircleOutlined />;
     const normalizedStatus = status.toLowerCase();
-    const isHealthy = ["up", "ok", "healthy", "ready", "alive", "connected"].includes(normalizedStatus);
+    const isHealthy = ['up', 'ok', 'healthy', 'ready', 'alive', 'connected'].includes(
+      normalizedStatus,
+    );
     return isHealthy ? <CheckCircleOutlined /> : <CloseCircleOutlined />;
   };
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div style={{ padding: '24px' }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
           <Title level={2}>Health Monitor</Title>
-          <Text type="secondary">
-            Last checked: {lastChecked.toLocaleTimeString()}
-          </Text>
+          <Text type="secondary">Last checked: {lastChecked.toLocaleTimeString()}</Text>
         </Col>
         <Col>
           <Button
@@ -123,22 +132,24 @@ export const HealthMonitor: React.FC = () => {
       <Card style={{ marginBottom: 24 }}>
         <Row align="middle" gutter={16}>
           <Col>
-            <Title level={4} style={{ margin: 0 }}>System Status</Title>
+            <Title level={4} style={{ margin: 0 }}>
+              System Status
+            </Title>
           </Col>
           <Col>
             <Tag
               icon={getStatusIcon(healthData?.data?.status)}
               color={getStatusColor(healthData?.data?.status)}
-              style={{ fontSize: 16, padding: "4px 12px" }}
+              style={{ fontSize: 16, padding: '4px 12px' }}
             >
-              {healthData?.data?.status?.toUpperCase() || "UNKNOWN"}
+              {healthData?.data?.status?.toUpperCase() || 'UNKNOWN'}
             </Tag>
           </Col>
         </Row>
         {healthData?.data?.message && (
           <Alert
             message={healthData.data.message}
-            type={healthData?.data?.status === "ok" ? "success" : "warning"}
+            type={healthData?.data?.status === 'ok' ? 'success' : 'warning'}
             style={{ marginTop: 16 }}
           />
         )}
@@ -148,7 +159,7 @@ export const HealthMonitor: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={8}>
           <Card>
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Space>
                 <DatabaseOutlined style={{ fontSize: 24 }} />
                 <Text strong>Database</Text>
@@ -157,12 +168,10 @@ export const HealthMonitor: React.FC = () => {
                 color={getStatusColor(dbHealthData?.status)}
                 icon={getStatusIcon(dbHealthData?.status)}
               >
-                {dbHealthData?.status?.toUpperCase() || "CHECKING..."}
+                {dbHealthData?.status?.toUpperCase() || 'CHECKING...'}
               </Tag>
               {dbHealthData?.responseTime && (
-                <Text type="secondary">
-                  Response time: {dbHealthData.responseTime}ms
-                </Text>
+                <Text type="secondary">Response time: {dbHealthData.responseTime}ms</Text>
               )}
             </Space>
           </Card>
@@ -170,7 +179,7 @@ export const HealthMonitor: React.FC = () => {
 
         <Col xs={24} sm={12} lg={8}>
           <Card>
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Space>
                 <ApiOutlined style={{ fontSize: 24 }} />
                 <Text strong>API</Text>
@@ -179,12 +188,10 @@ export const HealthMonitor: React.FC = () => {
                 color={getStatusColor(readinessData?.status)}
                 icon={getStatusIcon(readinessData?.status)}
               >
-                {readinessData?.status?.toUpperCase() || "CHECKING..."}
+                {readinessData?.status?.toUpperCase() || 'CHECKING...'}
               </Tag>
               {healthData?.uptime && (
-                <Text type="secondary">
-                  Uptime: {Math.floor(healthData.uptime / 3600)}h
-                </Text>
+                <Text type="secondary">Uptime: {Math.floor(healthData.uptime / 3600)}h</Text>
               )}
             </Space>
           </Card>
@@ -192,7 +199,7 @@ export const HealthMonitor: React.FC = () => {
 
         <Col xs={24} sm={12} lg={8}>
           <Card>
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
               <Space>
                 <ClockCircleOutlined style={{ fontSize: 24 }} />
                 <Text strong>System</Text>
@@ -201,12 +208,10 @@ export const HealthMonitor: React.FC = () => {
                 color={getStatusColor(healthData?.status)}
                 icon={getStatusIcon(healthData?.status)}
               >
-                {healthData?.status?.toUpperCase() || "CHECKING..."}
+                {healthData?.status?.toUpperCase() || 'CHECKING...'}
               </Tag>
               {healthData?.environment && (
-                <Text type="secondary">
-                  Environment: {healthData.environment}
-                </Text>
+                <Text type="secondary">Environment: {healthData.environment}</Text>
               )}
             </Space>
           </Card>
@@ -220,12 +225,12 @@ export const HealthMonitor: React.FC = () => {
             <Descriptions bordered column={1} size="small">
               <Descriptions.Item label="Status">
                 <Tag color={getStatusColor(readinessData?.status)}>
-                  {readinessData?.status || "Unknown"}
+                  {readinessData?.status || 'Unknown'}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Database">
-                <Tag color={readinessData?.database ? "success" : "error"}>
-                  {readinessData?.database ? "Connected" : "Disconnected"}
+                <Tag color={readinessData?.database ? 'success' : 'error'}>
+                  {readinessData?.database ? 'Connected' : 'Disconnected'}
                 </Tag>
               </Descriptions.Item>
             </Descriptions>
@@ -237,26 +242,28 @@ export const HealthMonitor: React.FC = () => {
             <Descriptions bordered column={1} size="small">
               <Descriptions.Item label="Status">
                 <Tag color={getStatusColor(livenessData?.status)}>
-                  {livenessData?.status || "Unknown"}
+                  {livenessData?.status || 'Unknown'}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Memory Usage">
                 <Progress
                   percent={livenessData?.memoryUsage || 0}
-                  status={livenessData?.memoryUsage > 90 ? "exception" : "normal"}
+                  status={livenessData?.memoryUsage > 90 ? 'exception' : 'normal'}
                 />
               </Descriptions.Item>
               <Descriptions.Item label="CPU Usage">
                 <Progress
                   percent={livenessData?.cpuUsage || 0}
-                  status={livenessData?.cpuUsage > 90 ? "exception" : "normal"}
+                  status={livenessData?.cpuUsage > 90 ? 'exception' : 'normal'}
                 />
               </Descriptions.Item>
               <Descriptions.Item label="Process Uptime">
                 <Text>
-                  {livenessData?.uptime ?
-                    `${Math.floor(livenessData.uptime / 3600)}h ${Math.floor((livenessData.uptime % 3600) / 60)}m`
-                    : "Unknown"}
+                  {livenessData?.uptime
+                    ? `${Math.floor(livenessData.uptime / 3600)}h ${Math.floor(
+                        (livenessData.uptime % 3600) / 60,
+                      )}m`
+                    : 'Unknown'}
                 </Text>
               </Descriptions.Item>
             </Descriptions>
@@ -273,7 +280,7 @@ export const HealthMonitor: React.FC = () => {
               <List.Item>
                 <List.Item.Meta
                   avatar={
-                    <Tag color={issue.severity === "error" ? "error" : "warning"}>
+                    <Tag color={issue.severity === 'error' ? 'error' : 'warning'}>
                       {issue.severity}
                     </Tag>
                   }

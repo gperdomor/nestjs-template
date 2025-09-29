@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, Transfer } from "antd";
-import type { Key } from "antd/es/table/interface";
-import type { TransferDirection } from "antd/es/transfer";
-import { useCustom } from "@refinedev/core";
+import React, { useState, useEffect } from 'react';
+import { Create, useForm } from '@refinedev/antd';
+import { Form, Input, Transfer } from 'antd';
+import type { Key } from 'antd/es/table/interface';
+import type { TransferDirection } from 'antd/es/transfer';
+import { useCustom } from '@refinedev/core';
 
 const { TextArea } = Input;
 
 export const RoleCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm();
-  
+
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [availablePermissions, setAvailablePermissions] = useState<any[]>([]);
 
   // Fetch available permissions
   const { data: permissionsData } = useCustom({
-    url: "/admin/roles/permissions",
-    method: "get",
+    url: '/admin/roles/permissions',
+    method: 'get',
   });
 
   useEffect(() => {
     // The API response is nested: { statusCode: 200, data: [...], timestamp: "..." }
     const actualData = permissionsData?.data?.data || permissionsData?.data;
-    
+
     if (actualData && Array.isArray(actualData)) {
       const permissions = actualData.map((p: any) => ({
         key: p.id,
@@ -35,10 +35,17 @@ export const RoleCreate: React.FC = () => {
     }
   }, [permissionsData]);
 
-  const handlePermissionChange = (targetKeys: Key[], _direction: TransferDirection, _moveKeys: Key[]) => {
+  const handlePermissionChange = (
+    targetKeys: Key[],
+    _direction: TransferDirection,
+    _moveKeys: Key[],
+  ) => {
     const stringTargetKeys = targetKeys.map(key => String(key));
     setSelectedPermissions(stringTargetKeys);
-    formProps.form?.setFieldsValue({ permissionIds: stringTargetKeys });
+    // Only set form values if form is properly connected
+    if (formProps.form && typeof formProps.form.setFieldsValue === 'function') {
+      formProps.form.setFieldsValue({ permissionIds: stringTargetKeys });
+    }
   };
 
   const onFinish = (values: any) => {
@@ -46,7 +53,7 @@ export const RoleCreate: React.FC = () => {
       ...values,
       permissionIds: selectedPermissions,
     };
-    
+
     if (formProps.onFinish) {
       return formProps.onFinish(finalValues);
     }
@@ -59,43 +66,36 @@ export const RoleCreate: React.FC = () => {
           label="Name"
           name="name"
           rules={[
-            { required: true, message: "Name is required" },
-            { min: 3, message: "Name must be at least 3 characters" },
+            { required: true, message: 'Name is required' },
+            { min: 3, message: 'Name must be at least 3 characters' },
           ]}
         >
           <Input placeholder="e.g., Content Editor, Moderator" />
         </Form.Item>
 
-        <Form.Item 
-          label="Description" 
+        <Form.Item
+          label="Description"
           name="description"
-          rules={[
-            { max: 255, message: "Description must not exceed 255 characters" },
-          ]}
+          rules={[{ max: 255, message: 'Description must not exceed 255 characters' }]}
         >
-          <TextArea 
-            rows={3} 
-            placeholder="Describe the purpose and responsibilities of this role"
-          />
+          <TextArea rows={3} placeholder="Describe the purpose and responsibilities of this role" />
         </Form.Item>
 
-        <Form.Item 
-          label="Permissions" 
+        <Form.Item
+          label="Permissions"
           name="permissionIds"
-          rules={[
-            { required: true, message: "At least one permission is required" },
-          ]}
+          rules={[{ required: true, message: 'At least one permission is required' }]}
         >
           <Transfer
             dataSource={availablePermissions}
             targetKeys={selectedPermissions}
             onChange={handlePermissionChange}
-            render={(item) => (
+            render={item => (
               <div>
                 <strong>{item.resource}</strong>: {item.action}
               </div>
             )}
-            titles={["Available Permissions", "Selected Permissions"]}
+            titles={['Available Permissions', 'Selected Permissions']}
             listStyle={{
               width: 300,
               height: 400,

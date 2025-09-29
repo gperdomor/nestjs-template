@@ -1,8 +1,8 @@
-import React from "react";
-import { Show, DateField, TextField } from "@refinedev/antd";
-import { useShow, useList } from "@refinedev/core";
-import { Typography, Tag, Space, Card, Descriptions, List, Avatar } from "antd";
-import { SafetyOutlined, UserOutlined } from "@ant-design/icons";
+import React from 'react';
+import { Show, DateField, TextField } from '@refinedev/antd';
+import { useShow, useList } from '@refinedev/core';
+import { Typography, Tag, Space, Card, Descriptions, List, Avatar } from 'antd';
+import { SafetyOutlined, UserOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -12,11 +12,11 @@ export const RoleShow: React.FC = () => {
   const record = data?.data;
 
   const { data: usersData } = useList({
-    resource: "users",
+    resource: 'users',
     filters: [
       {
-        field: "roleId",
-        operator: "eq",
+        field: 'roleId',
+        operator: 'eq',
         value: record?.id,
       },
     ],
@@ -39,12 +39,10 @@ export const RoleShow: React.FC = () => {
             <Text strong>{record?.name}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="Description" span={2}>
-            <TextField value={record?.description || "-"} />
+            <TextField value={record?.description || '-'} />
           </Descriptions.Item>
           <Descriptions.Item label="Type">
-            <Tag color={record?.type === "SYSTEM" ? "red" : "blue"}>
-              {record?.type}
-            </Tag>
+            <Tag color={record?.type === 'SYSTEM' ? 'red' : 'blue'}>{record?.type}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Users Count">
             <TextField value={users.length} />
@@ -62,12 +60,7 @@ export const RoleShow: React.FC = () => {
         <Title level={4}>Permissions ({record?.permissions?.length || 0})</Title>
         <Space wrap size={[8, 16]}>
           {record?.permissions?.map((permission: any) => (
-            <Tag
-              key={permission.id}
-              icon={<SafetyOutlined />}
-              color="blue"
-              style={{ margin: 0 }}
-            >
+            <Tag key={permission.id} icon={<SafetyOutlined />} color="blue" style={{ margin: 0 }}>
               <Space>
                 <Text strong>{permission.resource}</Text>
                 <Text>:</Text>
@@ -95,15 +88,11 @@ export const RoleShow: React.FC = () => {
                   <Space direction="vertical" size={0}>
                     <Text type="secondary">{user.email}</Text>
                     <Space>
-                      <Tag color={user.isActive ? "green" : "red"}>
-                        {user.isActive ? "Active" : "Inactive"}
+                      <Tag color={user.isActive ? 'green' : 'red'}>
+                        {user.isActive ? 'Active' : 'Inactive'}
                       </Tag>
-                      {user.emailVerified && (
-                        <Tag color="blue">Email Verified</Tag>
-                      )}
-                      {user.otpEnabled && (
-                        <Tag color="purple">2FA Enabled</Tag>
-                      )}
+                      {user.emailVerified && <Tag color="blue">Email Verified</Tag>}
+                      {user.otpEnabled && <Tag color="purple">2FA Enabled</Tag>}
                     </Space>
                   </Space>
                 }
@@ -111,9 +100,7 @@ export const RoleShow: React.FC = () => {
             </List.Item>
           )}
         />
-        {users.length === 0 && (
-          <Text type="secondary">No users assigned to this role</Text>
-        )}
+        {users.length === 0 && <Text type="secondary">No users assigned to this role</Text>}
       </Card>
     </Show>
   );

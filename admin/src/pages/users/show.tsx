@@ -1,15 +1,15 @@
-import React from "react";
-import { Show, DateField, TextField, TagField } from "@refinedev/antd";
-import { useShow, useCustomMutation } from "@refinedev/core";
-import { Typography, Tag, Space, Card, Descriptions, Button, message } from "antd";
-import { 
-  LockOutlined, 
-  UnlockOutlined, 
+import React from 'react';
+import { Show, DateField, TextField, TagField } from '@refinedev/antd';
+import { useShow, useCustomMutation } from '@refinedev/core';
+import { Typography, Tag, Space, Card, Descriptions, Button, message } from 'antd';
+import {
+  LockOutlined,
+  UnlockOutlined,
   SafetyOutlined,
   MailOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
-} from "@ant-design/icons";
+  CloseCircleOutlined,
+} from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -28,18 +28,18 @@ export const UserShow: React.FC = () => {
     activateUser(
       {
         url: `users/${record?.id}/activate`,
-        method: "patch",
+        method: 'patch',
         values: { active: true },
       },
       {
         onSuccess: () => {
-          message.success("User activated successfully");
+          message.success('User activated successfully');
           queryResult.refetch();
         },
         onError: () => {
-          message.error("Failed to activate user");
+          message.error('Failed to activate user');
         },
-      }
+      },
     );
   };
 
@@ -47,18 +47,18 @@ export const UserShow: React.FC = () => {
     deactivateUser(
       {
         url: `users/${record?.id}/activate`,
-        method: "patch",
+        method: 'patch',
         values: { active: false },
       },
       {
         onSuccess: () => {
-          message.success("User deactivated successfully");
+          message.success('User deactivated successfully');
           queryResult.refetch();
         },
         onError: () => {
-          message.error("Failed to deactivate user");
+          message.error('Failed to deactivate user');
         },
-      }
+      },
     );
   };
 
@@ -66,17 +66,17 @@ export const UserShow: React.FC = () => {
     sendVerificationEmail(
       {
         url: `auth/email/send-verification`,
-        method: "post",
+        method: 'post',
         values: { email: record?.email },
       },
       {
         onSuccess: () => {
-          message.success("Verification email sent");
+          message.success('Verification email sent');
         },
         onError: () => {
-          message.error("Failed to send verification email");
+          message.error('Failed to send verification email');
         },
-      }
+      },
     );
   };
 
@@ -103,19 +103,19 @@ export const UserShow: React.FC = () => {
             </Space>
           </Descriptions.Item>
           <Descriptions.Item label="First Name">
-            <TextField value={record?.firstName || "-"} />
+            <TextField value={record?.firstName || '-'} />
           </Descriptions.Item>
           <Descriptions.Item label="Last Name">
-            <TextField value={record?.lastName || "-"} />
+            <TextField value={record?.lastName || '-'} />
           </Descriptions.Item>
           <Descriptions.Item label="Status">
-            <Tag color={record?.isActive ? "green" : "red"}>
-              {record?.isActive ? "Active" : "Inactive"}
+            <Tag color={record?.isActive ? 'green' : 'red'}>
+              {record?.isActive ? 'Active' : 'Inactive'}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="2FA">
-            <Tag color={record?.otpEnabled ? "blue" : "default"}>
-              {record?.otpEnabled ? "Enabled" : "Disabled"}
+            <Tag color={record?.otpEnabled ? 'blue' : 'default'}>
+              {record?.otpEnabled ? 'Enabled' : 'Disabled'}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Created At">
@@ -139,7 +139,7 @@ export const UserShow: React.FC = () => {
 
       <Card style={{ marginTop: 16 }}>
         <Title level={4}>Roles & Permissions</Title>
-        <Space direction="vertical" style={{ width: "100%" }}>
+        <Space direction="vertical" style={{ width: '100%' }}>
           <div>
             <Text strong>Roles:</Text>
             <Space wrap style={{ marginLeft: 16, marginTop: 8 }}>
@@ -151,7 +151,7 @@ export const UserShow: React.FC = () => {
               )}
             </Space>
           </div>
-          
+
           {record?.permissions && record.permissions.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <Text strong>Permissions:</Text>
@@ -171,28 +171,17 @@ export const UserShow: React.FC = () => {
         <Title level={4}>Actions</Title>
         <Space>
           {record?.isActive ? (
-            <Button
-              danger
-              icon={<LockOutlined />}
-              onClick={handleDeactivate}
-            >
+            <Button danger icon={<LockOutlined />} onClick={handleDeactivate}>
               Deactivate User
             </Button>
           ) : (
-            <Button
-              type="primary"
-              icon={<UnlockOutlined />}
-              onClick={handleActivate}
-            >
+            <Button type="primary" icon={<UnlockOutlined />} onClick={handleActivate}>
               Activate User
             </Button>
           )}
-          
+
           {!record?.emailVerified && (
-            <Button
-              icon={<MailOutlined />}
-              onClick={handleSendVerification}
-            >
+            <Button icon={<MailOutlined />} onClick={handleSendVerification}>
               Send Verification Email
             </Button>
           )}

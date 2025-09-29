@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, Transfer, Alert } from "antd";
-import type { Key } from "antd/es/table/interface";
-import type { TransferDirection } from "antd/es/transfer";
-import { useCustom, useApiUrl } from "@refinedev/core";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Edit, useForm } from '@refinedev/antd';
+import { Form, Input, Transfer, Alert } from 'antd';
+import type { Key } from 'antd/es/table/interface';
+import type { TransferDirection } from 'antd/es/transfer';
+import { useCustom, useApiUrl } from '@refinedev/core';
+import { useParams } from 'react-router-dom';
 
 const { TextArea } = Input;
 
@@ -19,9 +19,13 @@ export const RoleEdit: React.FC = () => {
   const [originalPermissions, setOriginalPermissions] = useState<string[]>([]);
 
   // Fetch available permissions
-  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = useCustom({
-    url: "/admin/roles/permissions",
-    method: "get",
+  const {
+    data: permissionsData,
+    isLoading: permissionsLoading,
+    error: permissionsError,
+  } = useCustom({
+    url: '/admin/roles/permissions',
+    method: 'get',
   });
 
   useEffect(() => {
@@ -57,13 +61,21 @@ export const RoleEdit: React.FC = () => {
     }
   }, [roleData]);
 
-  const handlePermissionChange = (targetKeys: Key[], _direction: TransferDirection, _moveKeys: Key[]) => {
+  const handlePermissionChange = (
+    targetKeys: Key[],
+    _direction: TransferDirection,
+    _moveKeys: Key[],
+  ) => {
     const stringTargetKeys = targetKeys.map(key => String(key));
     setSelectedPermissions(stringTargetKeys);
     // Don't set permissionIds in the form since the backend doesn't expect it
   };
 
-  const updateRolePermissions = async (roleId: string, originalPerms: string[], newPerms: string[]) => {
+  const updateRolePermissions = async (
+    roleId: string,
+    originalPerms: string[],
+    newPerms: string[],
+  ) => {
     // Find permissions to add and remove
     const permissionsToAdd = newPerms.filter(id => !originalPerms.includes(id));
     const permissionsToRemove = originalPerms.filter(id => !newPerms.includes(id));
@@ -74,7 +86,7 @@ export const RoleEdit: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Refine typically stores token as 'access_token'
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`, // Refine typically stores token as 'access_token'
         },
       });
     }
@@ -83,7 +95,7 @@ export const RoleEdit: React.FC = () => {
       await fetch(`${apiUrl}/admin/roles/${roleId}/permissions/${permissionId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
     }
@@ -104,7 +116,6 @@ export const RoleEdit: React.FC = () => {
         await updateRolePermissions(roleId, originalPermissions, selectedPermissions);
         setOriginalPermissions([...selectedPermissions]); // Update original permissions
       }
-
     } catch (error) {
       console.error('Error updating role:', error);
       throw error; // Re-throw to let Refine handle the error display
@@ -167,7 +178,7 @@ export const RoleEdit: React.FC = () => {
         <Form.Item
           label="Name"
           name="name"
-          rules={[{ required: true, message: "Name is required" }]}
+          rules={[{ required: true, message: 'Name is required' }]}
         >
           <Input />
         </Form.Item>
@@ -176,20 +187,17 @@ export const RoleEdit: React.FC = () => {
           <TextArea rows={3} />
         </Form.Item>
 
-        <Form.Item
-          label="Permissions"
-          name="permissionIds"
-        >
+        <Form.Item label="Permissions" name="permissionIds">
           <Transfer
             dataSource={availablePermissions}
             targetKeys={selectedPermissions}
             onChange={handlePermissionChange}
-            render={(item) => (
+            render={item => (
               <div>
                 <strong>{item.resource}</strong>: {item.action}
               </div>
             )}
-            titles={["Available Permissions", "Selected Permissions"]}
+            titles={['Available Permissions', 'Selected Permissions']}
             listStyle={{
               width: 300,
               height: 400,
